@@ -153,7 +153,7 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
               {[UserRole.STAFF, UserRole.MANAGER, UserRole.ADMIN].map((role) => (
                 <label
                   key={role}
-                  className="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-primary/[0.02] cursor-pointer transition-colors"
+                  className="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-primary/2 cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"

@@ -92,7 +92,7 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
                 {Object.values(UserRole).map((role) => (
                   <label
                     key={role}
-                    className="hover:bg-primary/[0.02] flex cursor-pointer items-center rounded-xl border border-gray-100 p-3 transition-colors"
+                    className="hover:bg-primary/2 flex cursor-pointer items-center rounded-xl border border-gray-100 p-3 transition-colors"
                   >
                     <input
                       type="checkbox"
