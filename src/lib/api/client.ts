@@ -24,7 +24,7 @@ apiClient.interceptors.request.use(
   }
 );
 apiClient.interceptors.response.use(
-  (response) => response, // If success, just return
+  (response) => response,
 
   async (error) => {
     const originalRequest = error.config;
@@ -39,7 +39,7 @@ apiClient.interceptors.response.use(
           throw new Error('No refresh token');
         }
 
-        const { data } = await axios.post(`${API_URL}/auth/refresh-token`, {
+        const { data } = await axios.post(`${API_URL}auth/refresh-token`, {
           refreshToken,
         });
 
@@ -49,7 +49,6 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         tokenManager.clearTokens();
-        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
