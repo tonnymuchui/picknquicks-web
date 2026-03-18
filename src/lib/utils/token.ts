@@ -3,7 +3,7 @@ const REFRESH_TOKEN_KEY = 'refreshToken';
 
 export const tokenManager = {
   setTokens: (accessToken: string, refreshToken: string) => {
-    if (typeof window !== 'undefined') return null;
+    if (typeof window === 'undefined') return null;
     localStorage.setItem(TOKEN_key, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   },
