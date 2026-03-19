@@ -88,8 +88,12 @@ function SettingsContent() {
   };
 
   const getPasswordStrength = (password: string) => {
-    if (password.length < 8) {return { level: 'Weak', color: 'bg-red-500' };}
-    if (password.length < 12) {return { level: 'Medium', color: 'bg-yellow-500' };}
+    if (password.length < 8) {
+      return { level: 'Weak', color: 'bg-red-500' };
+    }
+    if (password.length < 12) {
+      return { level: 'Medium', color: 'bg-yellow-500' };
+    }
     if (/[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) {
       return { level: 'Strong', color: 'bg-green-500' };
     }
@@ -174,7 +178,9 @@ function SettingsContent() {
                         )}
                       </button>
                     </div>
-                    {passwordErrors.currentPassword ? <p className="mt-1 text-sm text-red-600">{passwordErrors.currentPassword}</p> : null}
+                    {passwordErrors.currentPassword ? (
+                      <p className="mt-1 text-sm text-red-600">{passwordErrors.currentPassword}</p>
+                    ) : null}
                   </div>
 
                   <div className="border-t border-gray-200 pt-6">
@@ -216,7 +222,8 @@ function SettingsContent() {
                       </button>
                     </div>
 
-                    {passwordForm.newPassword ? <div className="mt-3 space-y-2">
+                    {passwordForm.newPassword ? (
+                      <div className="mt-3 space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="h-1 flex-1 rounded-full bg-gray-200">
                             <div
@@ -229,7 +236,7 @@ function SettingsContent() {
                                       ? '66%'
                                       : '100%',
                               }}
-                             />
+                            />
                           </div>
                           <span
                             className={`text-xs font-medium ${
@@ -246,8 +253,11 @@ function SettingsContent() {
                         <p className="text-xs text-gray-600">
                           Use uppercase, numbers, and symbols for better security
                         </p>
-                      </div> : null}
-                    {passwordErrors.newPassword ? <p className="mt-1 text-sm text-red-600">{passwordErrors.newPassword}</p> : null}
+                      </div>
+                    ) : null}
+                    {passwordErrors.newPassword ? (
+                      <p className="mt-1 text-sm text-red-600">{passwordErrors.newPassword}</p>
+                    ) : null}
                   </div>
 
                   <div>
@@ -288,7 +298,9 @@ function SettingsContent() {
                         )}
                       </button>
                     </div>
-                    {passwordErrors.confirmPassword ? <p className="mt-1 text-sm text-red-600">{passwordErrors.confirmPassword}</p> : null}
+                    {passwordErrors.confirmPassword ? (
+                      <p className="mt-1 text-sm text-red-600">{passwordErrors.confirmPassword}</p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -309,34 +321,38 @@ function SettingsContent() {
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <h3 className="mb-4 font-semibold text-gray-900">Account Overview</h3>
-              <div className="space-y-4 text-sm">
-                <div>
-                  <p className="text-gray-600">Member Since</p>
-                  <p className="mt-1 font-medium text-gray-900">
-                    {new Date(user!.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="text-gray-600">Email Status</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    {user!.emailVerified ? (
-                      <>
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span className="font-medium text-green-600">Verified</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 text-yellow-600" />
-                        <span className="font-medium text-yellow-600">Not Verified</span>
-                      </>
-                    )}
+              {user ? (
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <p className="text-gray-600">Member Since</p>
+                    <p className="mt-1 font-medium text-gray-900">
+                      {new Date(user.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-gray-600">Email Status</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      {user.emailVerified ? (
+                        <>
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span className="font-medium text-green-600">Verified</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 text-yellow-600" />
+                          <span className="font-medium text-yellow-600">Not Verified</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <p className="text-sm text-gray-600">Loading account information...</p>
+              )}
             </div>
 
             <Link
