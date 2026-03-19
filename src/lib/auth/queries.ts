@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { apiClient } from '@/lib/api/client';
 import { tokenManager } from '@/lib/utils/token';
-import { User } from '@/types/auth';
+
+import type { User } from '@/types/auth';
 
 export const authKeys = {
   all: ['auth'] as const,
@@ -16,8 +18,9 @@ export function useMe() {
       try {
         const { data } = await apiClient.get('/auth/me');
         return (data?.data ?? data) as User;
-      } catch (error: any) {
-        const status = error?.response?.status;
+      } catch (error: unknown) {
+        const err = error as { response?: { status?: number } };
+        const status = err?.response?.status;
         if (status !== 404 && status !== 405) {
           throw error;
         }
@@ -31,9 +34,12 @@ export function useMe() {
 
     staleTime: 5 * 60 * 1000,
 
-    retry: (failureCount, error: any) => {
-      const status = error?.response?.status;
-      if (status === 401 || status === 403) return false;
+    retry: (failureCount, error: unknown) => {
+      const err = error as { response?: { status?: number } };
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        return false;
+      }
       return failureCount < 2;
     },
     retryDelay: 1000,

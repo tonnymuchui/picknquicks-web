@@ -1,10 +1,12 @@
 'use client';
 
-import { useUser } from '@/lib/admin/queries';
-import { useUpdateUserRoles } from '@/lib/admin/mutations';
-import { UserRole } from '@/types/auth';
-import { useState, useEffect } from 'react';
 import { X, Loader2, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import { useUpdateUserRoles } from '@/lib/admin/mutations';
+import { useUser } from '@/lib/admin/queries';
+import { UserRole } from '@/types/auth';
+
 
 interface EditUserRolesModalProps {
   isOpen: boolean;
@@ -24,7 +26,7 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
     }
   }, [user]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   const handleToggleRole = (role: UserRole) => {
     setSelectedRoles((prev) =>
@@ -57,8 +59,8 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
             <h2 className="text-lg font-semibold text-gray-900">Edit User Roles</h2>
           </div>
           <button
-            onClick={onClose}
             className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            onClick={onClose}
           >
             <X size={24} />
           </button>
@@ -95,18 +97,18 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
                     className="hover:bg-primary/2 flex cursor-pointer items-center rounded-xl border border-gray-100 p-3 transition-colors"
                   >
                     <input
-                      type="checkbox"
                       checked={selectedRoles.includes(role)}
-                      onChange={() => handleToggleRole(role)}
                       className="text-primary focus:ring-primary/30 h-4 w-4 rounded"
+                      type="checkbox"
+                      onChange={() => handleToggleRole(role)}
                     />
                     <div className="ml-3 flex-1">
                       <span className="font-medium text-gray-900">{role}</span>
                       <p className="text-sm text-gray-500">
-                        {role === UserRole.ADMIN && 'Full system access and user management'}
-                        {role === UserRole.MANAGER && 'Manage products, orders, and reports'}
-                        {role === UserRole.STAFF && 'Process orders and customer support'}
-                        {role === UserRole.CUSTOMER && 'Shop and place orders'}
+                        {role === UserRole.ADMIN ? 'Full system access and user management' : null}
+                        {role === UserRole.MANAGER ? 'Manage products, orders, and reports' : null}
+                        {role === UserRole.STAFF ? 'Process orders and customer support' : null}
+                        {role === UserRole.CUSTOMER ? 'Shop and place orders' : null}
                       </p>
                     </div>
                     <span
@@ -126,11 +128,9 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
                 ))}
               </div>
 
-              {selectedRoles.length === 0 && (
-                <div className="bg-highlight/5 border-highlight/10 mt-4 rounded-xl border p-3">
+              {selectedRoles.length === 0 ? <div className="bg-highlight/5 border-highlight/10 mt-4 rounded-xl border p-3">
                   <p className="text-highlight-dark text-sm">⚠️ User must have at least one role</p>
-                </div>
-              )}
+                </div> : null}
             </>
           ) : (
             <p className="py-8 text-center text-gray-500">User not found</p>
@@ -139,15 +139,15 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
 
         <div className="flex items-center justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-5">
           <button
-            onClick={onClose}
             className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+            onClick={onClose}
           >
             Cancel
           </button>
           <button
-            onClick={handleSave}
-            disabled={updateRoles.isPending || selectedRoles.length === 0}
             className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={updateRoles.isPending || selectedRoles.length === 0}
+            onClick={handleSave}
           >
             {updateRoles.isPending ? (
               <>

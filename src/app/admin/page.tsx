@@ -1,8 +1,5 @@
 'use client';
 
-import { ProtectedRoute } from '@/components/auth/protected-route';
-import { useAdminStats } from '@/lib/admin/queries';
-import { UserRole } from '@/types/auth';
 import {
   Users,
   ShoppingBag,
@@ -16,6 +13,10 @@ import {
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
+
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useAdminStats } from '@/lib/admin/queries';
+import { UserRole } from '@/types/auth';
 
 export default function AdminPage() {
   const { data: stats, isLoading } = useAdminStats();
@@ -42,36 +43,36 @@ export default function AdminPage() {
           ) : (
             <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
-                title="Total Users"
-                value={stats?.totalUsers || 0}
                 change="+12%"
                 icon={<Users className="h-5 w-5" />}
                 iconBg="bg-primary/10"
                 iconColor="text-primary"
+                title="Total Users"
+                value={stats?.totalUsers || 0}
               />
               <StatCard
-                title="Total Orders"
-                value={stats?.totalOrders || 0}
                 change="+8%"
                 icon={<ShoppingBag className="h-5 w-5" />}
                 iconBg="bg-secondary/20"
                 iconColor="text-secondary-dark"
+                title="Total Orders"
+                value={stats?.totalOrders || 0}
               />
               <StatCard
-                title="Revenue"
-                value={`$${(stats?.totalRevenue || 0).toLocaleString()}`}
                 change="+23%"
                 icon={<DollarSign className="h-5 w-5" />}
                 iconBg="bg-highlight/10"
                 iconColor="text-highlight"
+                title="Revenue"
+                value={`$${(stats?.totalRevenue || 0).toLocaleString()}`}
               />
               <StatCard
-                title="Low Stock"
-                value={stats?.lowStockProducts || 0}
+                isAlert
                 icon={<AlertCircle className="h-5 w-5" />}
                 iconBg="bg-accent/10"
                 iconColor="text-accent"
-                isAlert
+                title="Low Stock"
+                value={stats?.lowStockProducts || 0}
               />
             </div>
           )}
@@ -80,32 +81,32 @@ export default function AdminPage() {
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <QuickActionCard
-                title="Manage Users"
+                color="primary"
                 description="View and manage all users and staff"
                 href="/admin/users"
                 icon={<Users className="h-6 w-6" />}
-                color="primary"
+                title="Manage Users"
               />
               <QuickActionCard
-                title="Manage Roles"
+                color="accent"
                 description="Create and configure roles"
                 href="/admin/roles"
                 icon={<Shield className="h-6 w-6" />}
-                color="accent"
+                title="Manage Roles"
               />
               <QuickActionCard
-                title="Products"
+                color="secondary"
                 description="Manage products and inventory"
                 href="/admin/products"
                 icon={<Package className="h-6 w-6" />}
-                color="secondary"
+                title="Products"
               />
               <QuickActionCard
-                title="Orders"
+                color="highlight"
                 description="View and process orders"
                 href="/admin/orders"
                 icon={<ShoppingBag className="h-6 w-6" />}
-                color="highlight"
+                title="Orders"
               />
             </div>
           </div>
@@ -134,8 +135,7 @@ function StatCard({ title, value, icon, iconBg, iconColor, change, isAlert }: St
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
-          {change && (
-            <div
+          {change ? <div
               className={`mt-2 flex items-center gap-1 text-xs font-medium ${isAlert ? 'text-accent' : isPositive ? 'text-secondary-dark' : 'text-highlight'}`}
             >
               {isPositive ? (
@@ -144,8 +144,7 @@ function StatCard({ title, value, icon, iconBg, iconColor, change, isAlert }: St
                 <TrendingDown className="h-3 w-3" />
               )}
               {change} from last month
-            </div>
-          )}
+            </div> : null}
         </div>
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
@@ -192,8 +191,8 @@ function QuickActionCard({ title, description, href, icon, color }: QuickActionC
   const c = colorMap[color];
   return (
     <Link
-      href={href}
       className="group flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:border-gray-200 hover:shadow-md"
+      href={href}
     >
       <div
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${c.bg} ${c.text} ${c.hover} transition-all`}

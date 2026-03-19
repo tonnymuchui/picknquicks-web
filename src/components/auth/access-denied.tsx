@@ -2,6 +2,7 @@
 
 import { ShieldAlert, ArrowLeft, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
 import { useAuth } from '@/lib/auth/hooks';
 
 interface AccessDeniedProps {
@@ -29,8 +30,8 @@ export function AccessDenied({
 
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <button
-            onClick={() => router.back()}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 sm:w-auto"
+            onClick={() => router.back()}
           >
             <ArrowLeft size={16} />
             Go Back
@@ -38,15 +39,15 @@ export function AccessDenied({
 
           {isAuthenticated ? (
             <button
-              onClick={() => router.push('/')}
               className="bg-primary shadow-primary/25 hover:bg-primary-light flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all sm:w-auto"
+              onClick={() => router.push('/')}
             >
               Go to Homepage
             </button>
           ) : (
             <button
-              onClick={() => router.push('/auth/login')}
               className="bg-primary shadow-primary/25 hover:bg-primary-light flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all sm:w-auto"
+              onClick={() => router.push('/auth/login')}
             >
               <LogIn size={16} />
               Sign In

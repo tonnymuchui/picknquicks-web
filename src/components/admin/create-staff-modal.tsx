@@ -1,11 +1,13 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { X, Loader2, UserPlus } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+
 import { useCreateStaff } from '@/lib/admin/mutations';
 import { UserRole } from '@/types/auth';
-import { X, Loader2, UserPlus } from 'lucide-react';
+
 
 const createStaffSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -63,7 +65,7 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -74,14 +76,14 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
             <h2 className="text-lg font-semibold text-gray-900">Create Staff Member</h2>
           </div>
           <button
-            onClick={handleClose}
             className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            onClick={handleClose}
           >
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
+        <form className="p-5 space-y-5" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <h3 className="text-base font-semibold text-gray-900 mb-4">Personal Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -91,13 +93,11 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                 </label>
                 <input
                   {...register('firstName')}
-                  type="text"
                   className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   placeholder="John"
+                  type="text"
                 />
-                {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
-                )}
+                {errors.firstName ? <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p> : null}
               </div>
 
               <div>
@@ -106,13 +106,11 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                 </label>
                 <input
                   {...register('lastName')}
-                  type="text"
                   className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   placeholder="Doe"
+                  type="text"
                 />
-                {errors.lastName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-                )}
+                {errors.lastName ? <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p> : null}
               </div>
 
               <div>
@@ -121,13 +119,11 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                 </label>
                 <input
                   {...register('email')}
-                  type="email"
                   className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   placeholder="john@picknquicks.com"
+                  type="email"
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-                )}
+                {errors.email ? <p className="mt-1 text-sm text-red-600">{errors.email.message}</p> : null}
               </div>
 
               <div>
@@ -136,13 +132,11 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                 </label>
                 <input
                   {...register('phone')}
-                  type="tel"
                   className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   placeholder="+254712345678"
+                  type="tel"
                 />
-                {errors.phone && (
-                  <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-                )}
+                {errors.phone ? <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p> : null}
               </div>
             </div>
           </div>
@@ -156,17 +150,17 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                   className="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-primary/2 cursor-pointer transition-colors"
                 >
                   <input
-                    type="checkbox"
                     checked={selectedRoles?.includes(role) || false}
-                    onChange={() => handleToggleRole(role)}
                     className="h-4 w-4 text-primary rounded focus:ring-primary/30"
+                    type="checkbox"
+                    onChange={() => handleToggleRole(role)}
                   />
                   <div className="ml-3 flex-1">
                     <span className="font-medium text-gray-900">{role}</span>
                     <p className="text-sm text-gray-500">
-                      {role === UserRole.ADMIN && 'Full system access and user management'}
-                      {role === UserRole.MANAGER && 'Manage products, orders, and reports'}
-                      {role === UserRole.STAFF && 'Process orders and customer support'}
+                      {role === UserRole.ADMIN ? 'Full system access and user management' : null}
+                      {role === UserRole.MANAGER ? 'Manage products, orders, and reports' : null}
+                      {role === UserRole.STAFF ? 'Process orders and customer support' : null}
                     </p>
                   </div>
                   <span
@@ -183,9 +177,7 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                 </label>
               ))}
             </div>
-            {errors.roles && (
-              <p className="mt-2 text-sm text-red-600">{errors.roles.message}</p>
-            )}
+            {errors.roles ? <p className="mt-2 text-sm text-red-600">{errors.roles.message}</p> : null}
           </div>
 
           <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl">
@@ -197,16 +189,16 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
 
           <div className="-mx-5 -mb-5 flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/50 p-5 rounded-b-2xl">
             <button
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
               type="button"
               onClick={handleClose}
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              disabled={createStaff.isPending}
               className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              disabled={createStaff.isPending}
+              type="submit"
             >
               {createStaff.isPending ? (
                 <>

@@ -1,8 +1,10 @@
-import { UserRole } from '@/types/auth';
-import { useMe } from './queries';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+
+import { UserRole } from '@/types/auth';
+
+import { useMe } from './queries';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'forbidden' | 'error';
 
@@ -49,7 +51,7 @@ export function useRequireAuth(requiredRoles?: UserRole[]) {
   }
 
   useEffect(() => {
-    if (isLoading || hasRedirected.current) return;
+    if (isLoading || hasRedirected.current) {return;}
 
     if (status === 'unauthenticated') {
       hasRedirected.current = true;

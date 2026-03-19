@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useForgotPassword } from '@/lib/auth/mutations';
 import { Loader2, Mail, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
+
+import { useForgotPassword } from '@/lib/auth/mutations';
 
 export default function ForgotPasswordPage() {
   const forgotPassword = useForgotPassword();
@@ -29,8 +30,8 @@ export default function ForgotPasswordPage() {
             The link will expire in 1 hour. If you don't see the email, check your spam folder.
           </p>
           <Link
-            href="/"
             className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 mt-6 inline-block w-full rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
+            href="/"
           >
             Back to Login
           </Link>
@@ -52,26 +53,26 @@ export default function ForgotPasswordPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700" htmlFor="email">
               Email address
             </label>
             <input
-              id="email"
-              type="email"
               required
+              className="focus:border-primary focus:ring-primary/20 mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 shadow-sm focus:outline-none focus:ring-2"
+              id="email"
+              placeholder="john@example.com"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="focus:border-primary focus:ring-primary/20 mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 shadow-sm focus:outline-none focus:ring-2"
-              placeholder="john@example.com"
             />
           </div>
 
           <button
-            type="submit"
-            disabled={forgotPassword.isPending}
             className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 flex w-full justify-center rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
+            disabled={forgotPassword.isPending}
+            type="submit"
           >
             {forgotPassword.isPending ? (
               <>
@@ -85,7 +86,7 @@ export default function ForgotPasswordPage() {
 
           <p className="text-center text-sm text-gray-600">
             Remember your password?{' '}
-            <Link href="/auth/login" className="text-primary hover:text-primary-light font-medium">
+            <Link className="text-primary hover:text-primary-light font-medium" href="/auth/login">
               Sign in
             </Link>
           </p>

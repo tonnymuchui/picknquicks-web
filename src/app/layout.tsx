@@ -1,5 +1,6 @@
-import { QueryProvider } from '@/lib/providers/query-provider';
 import { Navbar } from '@/components/layout/navbar';
+import { QueryProvider } from '@/lib/providers/query-provider';
+
 import './globals.css';
 import type { Metadata } from 'next';
 

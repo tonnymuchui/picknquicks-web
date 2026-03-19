@@ -1,13 +1,16 @@
 'use client';
 
-import { ProtectedRoute } from '@/components/auth/protected-route';
-import { useRoles } from '@/lib/admin/queries';
-import { useDeleteRole } from '@/lib/admin/mutations';
-import { UserRole } from '@/types/auth';
-import type { RoleResponse } from '@/types/admin';
-import { useState } from 'react';
 import { Plus, Edit, Trash2, Shield, Loader2, Search } from 'lucide-react';
+import { useState } from 'react';
+
 import { RoleModal } from '@/components/admin/role-modal';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useDeleteRole } from '@/lib/admin/mutations';
+import { useRoles } from '@/lib/admin/queries';
+import { UserRole } from '@/types/auth';
+
+import type { RoleResponse } from '@/types/admin';
+
 
 export default function AdminRolesPage() {
   const [search, setSearch] = useState('');
@@ -55,11 +58,11 @@ export default function AdminRolesPage() {
               </p>
             </div>
             <button
+              className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors"
               onClick={() => {
                 setEditingRole(null);
                 setIsModalOpen(true);
               }}
-              className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors"
             >
               <Plus size={20} />
               Create Role
@@ -73,11 +76,11 @@ export default function AdminRolesPage() {
                 size={20}
               />
               <input
+                className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
+                placeholder="Search roles..."
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search roles..."
-                className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
               />
             </div>
           </div>
@@ -110,39 +113,34 @@ export default function AdminRolesPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">{role.name}</h3>
-                        {role.createdAt && (
-                          <p className="text-xs text-gray-400">
+                        {role.createdAt ? <p className="text-xs text-gray-400">
                             Created {new Date(role.createdAt).toLocaleDateString()}
-                          </p>
-                        )}
+                          </p> : null}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => handleEdit(role)}
                         className="hover:text-primary rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100"
                         title="Edit role"
+                        onClick={() => handleEdit(role)}
                       >
                         <Edit size={16} />
                       </button>
                       <button
-                        onClick={() => handleDelete(role)}
-                        disabled={deleteRole.isPending}
                         className="hover:bg-accent/5 hover:text-accent rounded-lg p-1.5 text-gray-400 transition-colors disabled:opacity-50"
+                        disabled={deleteRole.isPending}
                         title="Delete role"
+                        onClick={() => handleDelete(role)}
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
 
-                  {role.description && (
-                    <p className="mb-3 line-clamp-2 text-sm text-gray-600">{role.description}</p>
-                  )}
+                  {role.description ? <p className="mb-3 line-clamp-2 text-sm text-gray-600">{role.description}</p> : null}
 
-                  {role.permissions && role.permissions.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                  {role.permissions && role.permissions.length > 0 ? <div className="flex flex-wrap gap-1">
                       {role.permissions.slice(0, 3).map((perm) => (
                         <span
                           key={perm}
@@ -151,13 +149,10 @@ export default function AdminRolesPage() {
                           {perm}
                         </span>
                       ))}
-                      {role.permissions.length > 3 && (
-                        <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
+                      {role.permissions.length > 3 ? <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
                           +{role.permissions.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
+                        </span> : null}
+                    </div> : null}
                 </div>
               ))}
             </div>
@@ -165,7 +160,7 @@ export default function AdminRolesPage() {
         </div>
       </div>
 
-      <RoleModal isOpen={isModalOpen} onClose={handleCloseModal} role={editingRole} />
+      <RoleModal isOpen={isModalOpen} role={editingRole} onClose={handleCloseModal} />
     </ProtectedRoute>
   );
 }

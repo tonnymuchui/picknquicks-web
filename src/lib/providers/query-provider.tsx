@@ -1,9 +1,8 @@
 'use client';
 import { QueryClient, QueryCache, MutationCache, QueryClientProvider } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
-import { Toaster } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -18,18 +17,19 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
             retry: 1,
           },
           mutations: {
-            onError: (error: any) => {
-              toast.error(error?.response?.data?.message || 'Something went wrong');
+            onError: (error: unknown) => {
+              const err = error as { response?: { data?: { message?: string } } };
+              toast.error(err?.response?.data?.message || 'Something went wrong');
             },
           },
         },
         queryCache: new QueryCache({
-          onError: (error: any) => {
+          onError: (error: unknown) => {
             console.error('Query error:', error);
           },
         }),
         mutationCache: new MutationCache({
-          onError: (error: any) => {
+          onError: (error: unknown) => {
             console.error('Mutation error:', error);
           },
         }),
@@ -42,7 +42,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 
       <ReactQueryDevtools initialIsOpen={false} />
 
-      <Toaster position="top-right" richColors />
+      <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
 }

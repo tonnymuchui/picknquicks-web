@@ -1,11 +1,12 @@
 'use client';
 
+import { User, ShoppingBag, Settings, LogOut, Shield, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { useState, useRef, useEffect } from 'react';
+
 import { useAuth } from '@/lib/auth/hooks';
 import { useLogout } from '@/lib/auth/mutations';
 import { resolveAvatarUrl } from '@/lib/utils/media';
-import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
-import { User, ShoppingBag, Settings, LogOut, Shield, ChevronDown } from 'lucide-react';
 import { UserRole } from '@/types/auth';
 
 export function UserMenu() {
@@ -35,14 +36,14 @@ export function UserMenu() {
     return (
       <div className="flex items-center space-x-3">
         <Link
-          href="/auth/login"
           className="text-sm font-medium text-gray-300 transition-colors hover:text-white"
+          href="/auth/login"
         >
           Sign in
         </Link>
         <Link
-          href="/auth/register"
           className="bg-secondary text-primary-dark hover:bg-secondary-light rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+          href="/auth/register"
         >
           Sign up
         </Link>
@@ -51,13 +52,13 @@ export function UserMenu() {
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div ref={dropdownRef} className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-xl p-1 transition-colors hover:bg-white/10 focus:outline-none"
+        onClick={() => setIsOpen(!isOpen)}
       >
         {avatarUrl ? (
-          <img src={avatarUrl} alt={user.fullName} className="h-8 w-8 rounded-lg object-cover" />
+          <img alt={user.fullName} className="h-8 w-8 rounded-lg object-cover" src={avatarUrl} />
         ) : (
           <div className="bg-linear-to-br from-primary-light to-primary flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-white">
             {user.firstName[0]}
@@ -70,8 +71,7 @@ export function UserMenu() {
         />
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
+      {isOpen ? <div className="absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
           <div className="bg-linear-to-r from-primary to-primary-light p-4">
             <p className="text-sm font-semibold text-white">{user.fullName}</p>
             <p className="mt-0.5 truncate text-xs text-white/70">{user.email}</p>
@@ -79,60 +79,57 @@ export function UserMenu() {
 
           <div className="py-1.5">
             <Link
+              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
               href="/auth/profile"
               onClick={() => setIsOpen(false)}
-              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
             >
               <User className="h-4 w-4 text-gray-400" />
               Profile
             </Link>
 
             <Link
+              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
               href="/auth/orders"
               onClick={() => setIsOpen(false)}
-              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
             >
               <ShoppingBag className="h-4 w-4 text-gray-400" />
               My Orders
             </Link>
 
             <Link
+              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
               href="/settings"
               onClick={() => setIsOpen(false)}
-              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
             >
               <Settings className="h-4 w-4 text-gray-400" />
               Settings
             </Link>
           </div>
 
-          {user.roles.includes(UserRole.ADMIN) && (
-            <div className="border-t border-gray-100 py-1.5">
+          {user.roles.includes(UserRole.ADMIN) ? <div className="border-t border-gray-100 py-1.5">
               <Link
+                className="text-primary hover:bg-primary/5 flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
                 href="/admin"
                 onClick={() => setIsOpen(false)}
-                className="text-primary hover:bg-primary/5 flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
               >
                 <Shield className="h-4 w-4" />
                 Admin Dashboard
               </Link>
-            </div>
-          )}
+            </div> : null}
 
           <div className="border-t border-gray-100 py-1.5">
             <button
+              className="text-accent hover:bg-accent/5 flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors"
               onClick={() => {
                 setIsOpen(false);
                 logout.mutate();
               }}
-              className="text-accent hover:bg-accent/5 flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Sign out
             </button>
           </div>
-        </div>
-      )}
+        </div> : null}
     </div>
   );
 }

@@ -1,10 +1,13 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useCreateRole, useUpdateRole } from '@/lib/admin/mutations';
 import { X, Loader2, Shield } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { useCreateRole, useUpdateRole } from '@/lib/admin/mutations';
+
+
 import type { RoleResponse } from '@/types/admin';
 
 const roleSchema = z.object({
@@ -72,7 +75,7 @@ export function RoleModal({ isOpen, onClose, role }: RoleModalProps) {
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -85,54 +88,52 @@ export function RoleModal({ isOpen, onClose, role }: RoleModalProps) {
             </h2>
           </div>
           <button
-            onClick={handleClose}
             className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            onClick={handleClose}
           >
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-5">
+        <form className="space-y-4 p-5" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Role Name <span className="text-red-500">*</span>
             </label>
             <input
               {...register('name')}
-              type="text"
               className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
               placeholder="e.g. WAREHOUSE_MANAGER"
+              type="text"
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+            {errors.name ? <p className="mt-1 text-sm text-red-600">{errors.name.message}</p> : null}
           </div>
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
             <textarea
               {...register('description')}
-              rows={3}
               className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
               placeholder="What can this role do?"
+              rows={3}
             />
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-            )}
+            {errors.description ? <p className="mt-1 text-sm text-red-600">{errors.description.message}</p> : null}
           </div>
 
           <div className="-mx-5 -mb-5 flex justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-5">
             <button
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
               type="button"
               onClick={handleClose}
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              disabled={isPending}
               className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isPending}
+              type="submit"
             >
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {isEditing ? 'Update Role' : 'Create Role'}
             </button>
           </div>

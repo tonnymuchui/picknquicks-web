@@ -1,10 +1,5 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useUpdateProfile } from '@/lib/auth/mutations';
-import { useRequireAuth } from '@/lib/auth/hooks';
-import { resolveAvatarUrl } from '@/lib/utils/media';
-import Link from 'next/link';
 import {
   ArrowLeft,
   Mail,
@@ -15,6 +10,13 @@ import {
   AlertCircle,
   Upload,
 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
+
+import { useRequireAuth } from '@/lib/auth/hooks';
+import { useUpdateProfile } from '@/lib/auth/mutations';
+import { resolveAvatarUrl } from '@/lib/utils/media';
 
 export default function ProfilePage() {
   const { user, isLoading, status } = useRequireAuth();
@@ -39,27 +41,22 @@ export default function ProfilePage() {
         lastName: user.lastName || '',
         phone: user.phone || '',
       });
+      setImagePreview(resolveAvatarUrl(user.avatarUrl) || '');
+    }
+
+    return () => {
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current);
         objectUrlRef.current = null;
       }
-      setImagePreview(resolveAvatarUrl(user.avatarUrl) || '');
-    }
-  }, [user]);
-
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-      }
     };
-  }, []);
+  }, [user?.firstName, user?.lastName, user?.phone, user?.avatarUrl]);
 
   if (isLoading || status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="border-t-primary h-12 w-12 animate-spin rounded-full border-4 border-gray-200"></div>
+          <div className="border-t-primary h-12 w-12 animate-spin rounded-full border-4 border-gray-200" />
           <p className="text-sm text-gray-600">Loading your profile...</p>
         </div>
       </div>
@@ -104,7 +101,9 @@ export default function ProfilePage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     if (!file.type.startsWith('image/')) {
       setErrors((prev) => ({
@@ -166,14 +165,14 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center gap-3">
           <Link
-            href="/"
             className="inline-flex items-center justify-center rounded-lg p-2 transition-all hover:bg-gray-100"
+            href="/"
           >
             <ArrowLeft className="h-5 w-5 text-gray-600" />
           </Link>
           <div>
             <nav className="flex items-center gap-2 text-sm text-gray-600">
-              <Link href="/" className="hover:text-gray-900">
+              <Link className="hover:text-gray-900" href="/">
                 Home
               </Link>
               <span>/</span>
@@ -189,10 +188,12 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4">
                   <div className="group relative">
                     {imagePreview ? (
-                      <img
-                        src={imagePreview}
+                      <Image
                         alt="Profile"
                         className="h-20 w-20 rounded-full border-2 border-white object-cover shadow-lg"
+                        height={80}
+                        src={imagePreview}
+                        width={80}
                       />
                     ) : (
                       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-bold text-white shadow-lg">
@@ -203,10 +204,10 @@ export default function ProfilePage() {
                     <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                       <Upload className="h-6 w-6 text-white" />
                       <input
-                        type="file"
                         accept="image/*"
-                        onChange={handleImageChange}
                         className="hidden"
+                        type="file"
+                        onChange={handleImageChange}
                       />
                     </label>
                   </div>
@@ -230,79 +231,75 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="divide-y divide-gray-200">
+              <form className="divide-y divide-gray-200" onSubmit={handleSubmit}>
                 <div className="space-y-6 p-6">
                   <div className="grid gap-6 sm:grid-cols-2">
                     <div>
                       <label
-                        htmlFor="firstName"
                         className="block text-sm font-semibold text-gray-900"
+                        htmlFor="firstName"
                       >
                         First Name <span className="text-red-500">*</span>
                       </label>
                       <input
-                        id="firstName"
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
                         className={`focus:border-primary/60 focus:ring-primary/20 shadow-primary/5 mt-2 block w-full rounded-xl border bg-white px-4 py-2.5 shadow-sm transition-all focus:outline-none focus:ring-2 ${
                           errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-300'
                         }`}
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        value={formData.firstName}
+                        onChange={handleChange}
                       />
-                      {errors.firstName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-                      )}
+                      {errors.firstName ? <p className="mt-1 text-sm text-red-600">{errors.firstName}</p> : null}
                     </div>
                     <div>
                       <label
-                        htmlFor="lastName"
                         className="block text-sm font-semibold text-gray-900"
+                        htmlFor="lastName"
                       >
                         Last Name <span className="text-red-500">*</span>
                       </label>
                       <input
-                        id="lastName"
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
                         className={`focus:border-primary/60 focus:ring-primary/20 shadow-primary/5 mt-2 block w-full rounded-xl border bg-white px-4 py-2.5 shadow-sm transition-all focus:outline-none focus:ring-2 ${
                           errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-300'
                         }`}
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        value={formData.lastName}
+                        onChange={handleChange}
                       />
-                      {errors.lastName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-                      )}
+                      {errors.lastName ? <p className="mt-1 text-sm text-red-600">{errors.lastName}</p> : null}
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-900">
+                    <label className="block text-sm font-semibold text-gray-900" htmlFor="phone">
                       Phone Number
                     </label>
                     <div className="relative mt-2">
                       <Phone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                       <input
-                        id="phone"
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
                         className={`focus:border-primary/60 focus:ring-primary/20 shadow-primary/5 block w-full rounded-xl border bg-white py-2.5 pl-12 pr-4 shadow-sm transition-all focus:outline-none focus:ring-2 ${
                           errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
                         }`}
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={handleChange}
                       />
                     </div>
-                    {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+                    {errors.phone ? <p className="mt-1 text-sm text-red-600">{errors.phone}</p> : null}
                   </div>
                 </div>
 
                 <div className="flex gap-3 bg-gray-50 p-6">
                   <button
-                    type="submit"
-                    disabled={updateProfile.isPending || !isDirty || !isFormValid}
                     className="bg-primary hover:bg-primary-light flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={updateProfile.isPending || !isDirty || !isFormValid}
+                    type="submit"
                   >
                     <Save className="h-4 w-4" />
                     {updateProfile.isPending ? 'Saving Changes...' : 'Save Changes'}
@@ -328,7 +325,7 @@ export default function ProfilePage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-gray-600">Account Status</p>
                     <div className="mt-1 flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                      <div className="h-2 w-2 rounded-full bg-green-500" />
                       <p className="font-medium text-gray-900">Active</p>
                     </div>
                   </div>
@@ -337,8 +334,8 @@ export default function ProfilePage() {
             </div>
 
             <Link
-              href="/settings"
               className="block rounded-xl border border-gray-300 bg-white px-4 py-3 text-center font-semibold text-gray-900 transition-all hover:border-gray-400 hover:bg-gray-50"
+              href="/settings"
             >
               Account Settings
             </Link>

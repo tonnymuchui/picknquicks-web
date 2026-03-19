@@ -1,10 +1,14 @@
 'use client';
 
-import { UserRole } from '@/types/auth';
-import { useRequireAuth } from '@/lib/auth/hooks';
 import { Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+
+import { useRequireAuth } from '@/lib/auth/hooks';
+
 import { AccessDenied } from './access-denied';
+
+import type { UserRole } from '@/types/auth';
+
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -39,12 +43,12 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   if (status === 'forbidden') {
     return (
       <AccessDenied
-        title="You don't have permission to view this page"
         message={
           requiredRoles
             ? `This page requires one of the following roles: ${requiredRoles.join(', ')}. Contact your administrator if you need access.`
             : 'Your current role does not have permission to view this resource.'
         }
+        title="You don't have permission to view this page"
       />
     );
   }

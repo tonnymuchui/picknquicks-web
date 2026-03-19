@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
-import { adminKeys } from './queries';
 import { toast } from 'sonner';
+
+import { apiClient } from '@/lib/api/client';
+
+import { adminKeys } from './queries';
+
 import type {
   UpdateUserRolesRequest,
   CreateStaffRequest,
@@ -26,8 +29,9 @@ export function useUpdateUserRoles() {
       toast.success('User roles updated successfully');
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Failed to update roles');
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || 'Failed to update roles');
     },
   });
 }
@@ -47,8 +51,9 @@ export function useCreateStaff() {
       toast.success('Staff member created successfully');
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Failed to create staff');
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || 'Failed to create staff');
     },
   });
 }
@@ -98,8 +103,9 @@ export function useCreateRole() {
       queryClient.invalidateQueries({ queryKey: adminKeys.roles() });
       toast.success('Role created successfully');
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Failed to create role');
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || 'Failed to create role');
     },
   });
 }
@@ -117,8 +123,9 @@ export function useUpdateRole() {
       queryClient.invalidateQueries({ queryKey: adminKeys.roleDetail(variables.roleId) });
       toast.success('Role updated successfully');
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Failed to update role');
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || 'Failed to update role');
     },
   });
 }
@@ -135,8 +142,9 @@ export function useDeleteRole() {
       queryClient.invalidateQueries({ queryKey: adminKeys.roles() });
       toast.success('Role deleted successfully');
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Failed to delete role');
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || 'Failed to delete role');
     },
   });
 }

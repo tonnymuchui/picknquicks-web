@@ -1,16 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { tokenManager } from '@/lib/utils/token';
-import { authKeys } from '@/lib/auth/queries';
-import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { toast } from 'sonner';
+
 import { apiClient } from '@/lib/api/client';
+import { authKeys } from '@/lib/auth/queries';
+import { tokenManager } from '@/lib/utils/token';
 import { UserRole } from '@/types/auth';
 
-export default function OAuth2RedirectPage() {
+function OAuth2RedirectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -59,5 +60,22 @@ export default function OAuth2RedirectPage() {
         <p className="mt-4 text-gray-600">Completing login...</p>
       </div>
     </div>
+  );
+}
+
+export default function OAuth2RedirectPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <OAuth2RedirectContent />
+    </Suspense>
   );
 }

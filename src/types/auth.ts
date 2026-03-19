@@ -52,6 +52,6 @@ export interface AuthResponse {
 export interface ApiResponse {
   success: boolean;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
   timestamp: string;
 }

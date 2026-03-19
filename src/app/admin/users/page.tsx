@@ -1,10 +1,5 @@
 'use client';
 
-import { ProtectedRoute } from '@/components/auth/protected-route';
-import { useUsers } from '@/lib/admin/queries';
-import { useUpdateUserRoles, useToggleUserStatus, useDeleteUser } from '@/lib/admin/mutations';
-import { UserRole } from '@/types/auth';
-import { useState } from 'react';
 import {
   Search,
   Filter,
@@ -16,8 +11,15 @@ import {
   XCircle,
   Loader2,
 } from 'lucide-react';
-import { EditUserRolesModal } from '@/components/admin/edit-user-roles-modal';
+import { useState } from 'react';
+
 import { CreateStaffModal } from '@/components/admin/create-staff-modal';
+import { EditUserRolesModal } from '@/components/admin/edit-user-roles-modal';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useUpdateUserRoles, useToggleUserStatus, useDeleteUser } from '@/lib/admin/mutations';
+import { useUsers } from '@/lib/admin/queries';
+import { UserRole } from '@/types/auth';
+
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
@@ -65,8 +67,8 @@ export default function AdminUsersPage() {
                 </p>
               </div>
               <button
-                onClick={() => setIsCreateStaffOpen(true)}
                 className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all"
+                onClick={() => setIsCreateStaffOpen(true)}
               >
                 <UserPlus size={20} />
                 Create Staff
@@ -84,11 +86,11 @@ export default function AdminUsersPage() {
                   size={20}
                 />
                 <input
+                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
+                  placeholder="Search by name or email..."
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name or email..."
-                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
                 />
               </div>
 
@@ -98,9 +100,9 @@ export default function AdminUsersPage() {
                   size={20}
                 />
                 <select
+                  className="focus:border-primary focus:ring-primary/20 w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value as UserRole | '')}
-                  className="focus:border-primary focus:ring-primary/20 w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
                 >
                   <option value="">All Roles</option>
                   <option value={UserRole.CUSTOMER}>Customer</option>
@@ -168,12 +170,12 @@ export default function AdminUsersPage() {
                           <div className="text-sm text-gray-900">{user.email}</div>
                           {user.emailVerified ? (
                             <div className="mt-1 flex items-center text-xs text-green-600">
-                              <CheckCircle size={12} className="mr-1" />
+                              <CheckCircle className="mr-1" size={12} />
                               Verified
                             </div>
                           ) : (
                             <div className="mt-1 flex items-center text-xs text-gray-400">
-                              <XCircle size={12} className="mr-1" />
+                              <XCircle className="mr-1" size={12} />
                               Not verified
                             </div>
                           )}
@@ -218,27 +220,27 @@ export default function AdminUsersPage() {
                         <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-1">
                             <button
-                              onClick={() => handleEditRoles(user.id)}
                               className="text-primary hover:text-primary-dark rounded-lg p-1.5 transition-colors hover:bg-gray-100"
                               title="Edit roles"
+                              onClick={() => handleEditRoles(user.id)}
                             >
                               <Shield size={18} />
                             </button>
                             <button
-                              onClick={() => handleToggleStatus(user.id, user.enabled)}
                               className={`rounded-lg p-1.5 transition-colors ${
                                 user.enabled
                                   ? 'text-primary hover:text-primary-dark hover:bg-gray-100'
                                   : 'text-primary hover:text-primary-dark hover:bg-gray-100'
                               }`}
                               title={user.enabled ? 'Disable user' : 'Enable user'}
+                              onClick={() => handleToggleStatus(user.id, user.enabled)}
                             >
                               {user.enabled ? <XCircle size={18} /> : <CheckCircle size={18} />}
                             </button>
                             <button
-                              onClick={() => handleDeleteUser(user.id, user.fullName)}
                               className="hover:text-accent hover:bg-accent/5 rounded-lg p-1.5 text-gray-400 transition-colors"
                               title="Delete user"
+                              onClick={() => handleDeleteUser(user.id, user.fullName)}
                             >
                               <Trash2 size={18} />
                             </button>
@@ -250,44 +252,40 @@ export default function AdminUsersPage() {
                 </table>
               </div>
 
-              {usersData && usersData.totalPages > 1 && (
-                <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
+              {usersData && usersData.totalPages > 1 ? <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
                   <div className="text-sm text-gray-500">
                     Showing page {page + 1} of {usersData.totalPages}
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                      disabled={page === 0}
                       className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={page === 0}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
                     >
                       Previous
                     </button>
                     <button
-                      onClick={() => setPage((p) => Math.min(usersData.totalPages - 1, p + 1))}
-                      disabled={page === usersData.totalPages - 1}
                       className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={page === usersData.totalPages - 1}
+                      onClick={() => setPage((p) => Math.min(usersData.totalPages - 1, p + 1))}
                     >
                       Next
                     </button>
                   </div>
-                </div>
-              )}
+                </div> : null}
             </div>
           )}
         </div>
       </div>
 
-      {selectedUserId && (
-        <EditUserRolesModal
+      {selectedUserId ? <EditUserRolesModal
           isOpen={isEditModalOpen}
+          userId={selectedUserId}
           onClose={() => {
             setIsEditModalOpen(false);
             setSelectedUserId(null);
           }}
-          userId={selectedUserId}
-        />
-      )}
+        /> : null}
 
       <CreateStaffModal isOpen={isCreateStaffOpen} onClose={() => setIsCreateStaffOpen(false)} />
     </ProtectedRoute>

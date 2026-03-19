@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useVerifyEmail, useResendVerification } from '@/lib/auth/mutations';
 import { Loader2, CheckCircle2, XCircle, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function VerifyEmailPage() {
+import { useVerifyEmail, useResendVerification } from '@/lib/auth/mutations';
+
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
@@ -39,8 +40,8 @@ export default function VerifyEmailPage() {
             Your email has been successfully verified. You can now log in to your account.
           </p>
           <Link
-            href="/auth/login"
             className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 mt-6 inline-block w-full rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
+            href="/auth/login"
           >
             Go to Login
           </Link>
@@ -62,8 +63,8 @@ export default function VerifyEmailPage() {
             email.
           </p>
           <button
-            onClick={() => setShowResendForm(true)}
             className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 mt-6 inline-block w-full rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
+            onClick={() => setShowResendForm(true)}
           >
             Resend Verification Email
           </button>
@@ -97,26 +98,26 @@ export default function VerifyEmailPage() {
             </p>
           </div>
 
-          <form onSubmit={handleResend} className="mt-8 space-y-6">
+          <form className="mt-8 space-y-6" onSubmit={handleResend}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700" htmlFor="email">
                 Email address
               </label>
               <input
-                id="email"
-                type="email"
                 required
+                className="focus:border-primary focus:ring-primary/20 mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 shadow-sm focus:outline-none focus:ring-2"
+                id="email"
+                placeholder="john@example.com"
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="focus:border-primary focus:ring-primary/20 mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 shadow-sm focus:outline-none focus:ring-2"
-                placeholder="john@example.com"
               />
             </div>
 
             <button
-              type="submit"
-              disabled={resendVerification.isPending}
               className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 flex w-full justify-center rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
+              disabled={resendVerification.isPending}
+              type="submit"
             >
               {resendVerification.isPending ? (
                 <>
@@ -130,8 +131,8 @@ export default function VerifyEmailPage() {
 
             <p className="text-center text-sm text-gray-600">
               <Link
-                href="/auth/login"
                 className="text-primary hover:text-primary-light font-medium"
+                href="/auth/login"
               >
                 Back to login
               </Link>
@@ -157,12 +158,29 @@ export default function VerifyEmailPage() {
           Didn't receive the email? Check your spam folder or request a new one.
         </p>
         <button
-          onClick={() => setShowResendForm(true)}
           className="text-primary hover:text-primary-light mt-6 inline-block text-sm font-medium"
+          onClick={() => setShowResendForm(true)}
         >
           Resend verification email
         </button>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="to-primary/5 bg-linear-to-br flex min-h-screen items-center justify-center from-gray-50 via-white">
+          <div className="text-center">
+            <Loader2 className="text-primary mx-auto h-12 w-12 animate-spin" />
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

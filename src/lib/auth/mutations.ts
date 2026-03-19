@@ -1,24 +1,28 @@
-import {
-  ApiResponse,
-  AuthResponse,
-  LoginRequest,
-  RegisterRequest,
-  UserRole,
-  User,
-} from '../../types/auth';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '../api/client';
 import { toast } from 'sonner';
-import { tokenManager } from '../utils/token';
-import { authKeys } from '../auth/queries';
 
-function normalizeUserPayload(payload: any): User {
-  return (payload?.data ?? payload) as User;
+import { type ApiResponse, type AuthResponse, type LoginRequest, type RegisterRequest, type User , UserRole } from '@/types/auth';
+
+import { authKeys } from './queries';
+import { apiClient } from '../api/client';
+import { tokenManager } from '../utils/token';
+
+
+function normalizeUserPayload(payload: unknown): User {
+  const data = payload as Record<string, unknown> | User;
+  if (typeof data === 'object' && data !== null && 'data' in data) {
+    return (data as Record<string, unknown>).data as User;
+  }
+  return data as User;
 }
 
-function normalizeApiResponse(payload: any): ApiResponse {
-  return (payload?.data ?? payload) as ApiResponse;
+function normalizeApiResponse(payload: unknown): ApiResponse {
+  const data = payload as Record<string, unknown> | ApiResponse;
+  if (typeof data === 'object' && data !== null && 'data' in data) {
+    return (data as Record<string, unknown>).data as ApiResponse;
+  }
+  return data as ApiResponse;
 }
 
 export function useRegister() {
@@ -33,8 +37,9 @@ export function useRegister() {
       toast.success(data.message || 'Registration successful Check your email.');
       router.push('/verify-email');
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Registration failed';
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Registration failed';
       toast.error(message);
     },
   });
@@ -66,8 +71,9 @@ export function useLogin() {
       }
     },
 
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Login failed';
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Login failed';
       toast.error(message);
     },
   });
@@ -104,8 +110,9 @@ export function useVerifyEmail() {
       router.push('/login');
     },
 
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Verification failed';
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Verification failed';
       toast.error(message);
     },
   });
@@ -172,8 +179,9 @@ export function useUpdateProfile() {
       queryClient.setQueryData(authKeys.me(), data);
       toast.success('Profile updated successfully');
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Failed to update profile';
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Failed to update profile';
       toast.error(message);
     },
   });
@@ -192,8 +200,9 @@ export function useChangePassword() {
     onSuccess: (data) => {
       toast.success(data.message || 'Password changed successfully');
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Failed to change password';
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Failed to change password';
       toast.error(message);
     },
   });

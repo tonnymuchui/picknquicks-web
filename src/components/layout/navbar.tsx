@@ -1,21 +1,22 @@
 'use client';
 
-import { useAuth } from '@/lib/auth/hooks';
-import { useCart } from '@/lib/queries/cart.queries';
-import { UserRole } from '@/types/auth';
+import { Search, ShoppingCart, Heart, FileText, User, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Heart, FileText, User, Menu } from 'lucide-react';
+
 import { UserMenu } from '@/components/auth/user-menu';
+import { useAuth } from '@/lib/auth/hooks';
+import { UserRole } from '@/types/auth';
+
 import { CartDropdown } from './cart-dropdown';
-import { WishlistDropdown } from './wishlist-dropdown';
 import { MobileMenu } from './mobile-menu';
 import { SearchModal } from './search-modal';
+import { WishlistDropdown } from './wishlist-dropdown';
 import { AuthModal } from '../auth/auth-modal';
 
 export function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { data: cart } = '';
+  const cart = null;
 
   const [mounted, setMounted] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -41,13 +42,13 @@ export function Navbar() {
           <div className="flex items-center justify-between text-[#B0B0B0]">
             <div className="flex w-auto items-center justify-start gap-2.5 md:w-1/3 md:gap-0">
               <button
-                onClick={() => setIsMobileMenuOpen(true)}
                 className="transition-colors hover:text-white md:hidden"
+                onClick={() => setIsMobileMenuOpen(true)}
               >
                 <Menu size={24} />
               </button>
 
-              <Link href="/" className="flex items-center gap-2">
+              <Link className="flex items-center gap-2" href="/">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
                   <span className="text-xl font-bold text-white">PQ</span>
                 </div>
@@ -56,16 +57,16 @@ export function Navbar() {
             </div>
 
             <nav className="hidden items-center gap-8 md:flex">
-              <Link href="/" className="font-medium transition-colors hover:text-white">
+              <Link className="font-medium transition-colors hover:text-white" href="/">
                 Home
               </Link>
-              <Link href="/products" className="font-medium transition-colors hover:text-white">
+              <Link className="font-medium transition-colors hover:text-white" href="/products">
                 Products
               </Link>
-              <Link href="/categories" className="font-medium transition-colors hover:text-white">
+              <Link className="font-medium transition-colors hover:text-white" href="/categories">
                 Categories
               </Link>
-              <Link href="/deals" className="font-medium transition-colors hover:text-white">
+              <Link className="font-medium transition-colors hover:text-white" href="/deals">
                 Deals
               </Link>
 
@@ -73,10 +74,9 @@ export function Navbar() {
                 isAuthenticated &&
                 user?.roles.some((role) =>
                   [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(role)
-                ) && (
-                  <Link
-                    href="/admin"
+                ) ? <Link
                     className="flex items-center gap-1 font-medium transition-colors hover:text-yellow-400"
+                    href="/admin"
                   >
                     <span>Admin</span>
                     <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-xs text-black">
@@ -86,15 +86,14 @@ export function Navbar() {
                           ? 'MGR'
                           : 'STAFF'}
                     </span>
-                  </Link>
-                )}
+                  </Link> : null}
             </nav>
 
             <div className="flex w-auto items-center justify-end gap-5 md:w-1/3">
               <button
-                onClick={() => setIsSearchOpen(true)}
-                className="rounded-full p-2 transition-colors hover:bg-[#2a2a2a] hover:text-white"
                 aria-label="Search"
+                className="rounded-full p-2 transition-colors hover:bg-[#2a2a2a] hover:text-white"
+                onClick={() => setIsSearchOpen(true)}
               >
                 <Search size={20} />
               </button>
@@ -103,21 +102,14 @@ export function Navbar() {
 
               <WishlistDropdown />
 
-              {mounted && isAuthenticated && user && (
-                <Link href="/orders" className="group relative transition-colors hover:text-white">
+              {mounted && isAuthenticated && user ? <Link className="group relative transition-colors hover:text-white" href="/orders">
                   <FileText size={20} />
-                  {cart?.totalItems > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
-                      {cart.totalItems}
-                    </span>
-                  )}
-                </Link>
-              )}
+                </Link> : null}
 
               {!mounted || isLoading ? (
                 <button
-                  className="rounded-full p-2 transition-colors hover:bg-[#2a2a2a] hover:text-white"
                   aria-label="Sign in"
+                  className="rounded-full p-2 transition-colors hover:bg-[#2a2a2a] hover:text-white"
                 >
                   <User size={20} />
                 </button>
@@ -125,9 +117,9 @@ export function Navbar() {
                 <UserMenu />
               ) : (
                 <button
-                  onClick={handleAuthClick}
-                  className="rounded-full p-2 transition-colors hover:bg-[#2a2a2a] hover:text-white"
                   aria-label="Sign in"
+                  className="rounded-full p-2 transition-colors hover:bg-[#2a2a2a] hover:text-white"
+                  onClick={handleAuthClick}
                 >
                   <User size={20} />
                 </button>
