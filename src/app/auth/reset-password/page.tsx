@@ -120,7 +120,10 @@ function ResetPasswordContent() {
               <button
                 className="absolute inset-y-0 right-0 flex items-center pr-3"
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowPassword(!showPassword);
+                }}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400" />
@@ -172,7 +175,10 @@ function ResetPasswordContent() {
               <button
                 className="absolute inset-y-0 right-0 flex items-center pr-3"
                 type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowConfirmPassword(!showConfirmPassword);
+                }}
               >
                 {showConfirmPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400" />
