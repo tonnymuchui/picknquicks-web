@@ -31,6 +31,15 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         mutationCache: new MutationCache({
           onError: (error: unknown) => {
             console.error('Mutation error:', error);
+            if (error instanceof Error) {
+              console.error('Error message:', error.message);
+              console.error('Error stack:', error.stack);
+            }
+            const axiosError = error as { response?: { status?: number; data?: unknown } };
+            if (axiosError?.response) {
+              console.error('API Response Status:', axiosError.response.status);
+              console.error('API Response Data:', axiosError.response.data);
+            }
           },
         }),
       })
