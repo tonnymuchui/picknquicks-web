@@ -58,7 +58,7 @@ export function UserMenu() {
         className="flex items-center gap-2 rounded-xl p-1 transition-colors hover:bg-white/10 focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {avatarUrl ? (
+        {avatarUrl && user ? (
           <Image
             alt={user.fullName}
             className="h-8 w-8 rounded-lg object-cover"
@@ -68,11 +68,11 @@ export function UserMenu() {
           />
         ) : (
           <div className="bg-linear-to-br from-primary-light to-primary flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-white">
-            {user.firstName[0]}
-            {user.lastName[0]}
+            {user?.firstName?.[0]}
+            {user?.lastName?.[0]}
           </div>
         )}
-        <span className="hidden text-sm font-medium text-gray-300 md:block">{user.firstName}</span>
+        <span className="hidden text-sm font-medium text-gray-300 md:block">{user?.firstName}</span>
         <ChevronDown
           className={`h-3.5 w-3.5 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
