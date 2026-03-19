@@ -4,11 +4,12 @@ import { ArrowLeft, Lock, LogOut as LogOutIcon, Eye, EyeOff, Shield, Check } fro
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { useRequireAuth } from '@/lib/auth/hooks';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useAuth } from '@/lib/auth/hooks';
 import { useChangePassword, useLogout } from '@/lib/auth/mutations';
 
-export default function SettingsPage() {
-  const { user, isLoading, status } = useRequireAuth();
+function SettingsContent() {
+  const { user } = useAuth();
   const changePassword = useChangePassword();
   const logout = useLogout();
 
@@ -26,21 +27,6 @@ export default function SettingsPage() {
 
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
   const [isPasswordDirty, setIsPasswordDirty] = useState(false);
-
-  if (isLoading || status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="border-t-primary h-12 w-12 animate-spin rounded-full border-4 border-gray-200" />
-          <p className="text-sm text-gray-600">Loading settings...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === 'unauthenticated' || !user) {
-    return null;
-  }
 
   const validatePasswordForm = () => {
     const newErrors: Record<string, string> = {};
@@ -327,7 +313,7 @@ export default function SettingsPage() {
                 <div>
                   <p className="text-gray-600">Member Since</p>
                   <p className="mt-1 font-medium text-gray-900">
-                    {new Date(user.createdAt).toLocaleDateString('en-US', {
+                    {new Date(user!.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
@@ -337,7 +323,7 @@ export default function SettingsPage() {
                 <div className="border-t border-gray-200 pt-4">
                   <p className="text-gray-600">Email Status</p>
                   <div className="mt-2 flex items-center gap-2">
-                    {user.emailVerified ? (
+                    {user!.emailVerified ? (
                       <>
                         <Check className="h-4 w-4 text-green-600" />
                         <span className="font-medium text-green-600">Verified</span>
@@ -372,5 +358,13 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <ProtectedRoute>
+      <SettingsContent />
+    </ProtectedRoute>
   );
 }
