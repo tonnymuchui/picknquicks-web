@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, ShoppingCart, Heart, FileText, User, Menu } from 'lucide-react';
+import { Search, FileText, User, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
@@ -24,6 +24,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -49,7 +50,7 @@ export function Navbar() {
               </button>
 
               <Link className="flex items-center gap-2" href="/">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+                <div className="bg-linear-to-br flex h-10 w-10 items-center justify-center rounded-lg from-blue-500 to-purple-600">
                   <span className="text-xl font-bold text-white">PQ</span>
                 </div>
                 <span className="hidden text-xl font-bold text-white md:block">PickNQuicks</span>
@@ -71,22 +72,24 @@ export function Navbar() {
               </Link>
 
               {mounted &&
-                isAuthenticated &&
-                user?.roles.some((role) =>
-                  [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(role)
-                ) ? <Link
-                    className="flex items-center gap-1 font-medium transition-colors hover:text-yellow-400"
-                    href="/admin"
-                  >
-                    <span>Admin</span>
-                    <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-xs text-black">
-                      {user.roles.includes(UserRole.ADMIN)
-                        ? 'ADMIN'
-                        : user.roles.includes(UserRole.MANAGER)
-                          ? 'MGR'
-                          : 'STAFF'}
-                    </span>
-                  </Link> : null}
+              isAuthenticated &&
+              user?.roles.some((role) =>
+                [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(role)
+              ) ? (
+                <Link
+                  className="flex items-center gap-1 font-medium transition-colors hover:text-yellow-400"
+                  href="/admin"
+                >
+                  <span>Admin</span>
+                  <span className="rounded bg-yellow-500 px-1.5 py-0.5 text-xs text-black">
+                    {user.roles.includes(UserRole.ADMIN)
+                      ? 'ADMIN'
+                      : user.roles.includes(UserRole.MANAGER)
+                        ? 'MGR'
+                        : 'STAFF'}
+                  </span>
+                </Link>
+              ) : null}
             </nav>
 
             <div className="flex w-auto items-center justify-end gap-5 md:w-1/3">
@@ -102,9 +105,11 @@ export function Navbar() {
 
               <WishlistDropdown />
 
-              {mounted && isAuthenticated && user ? <Link className="group relative transition-colors hover:text-white" href="/orders">
+              {mounted && isAuthenticated && user ? (
+                <Link className="group relative transition-colors hover:text-white" href="/orders">
                   <FileText size={20} />
-                </Link> : null}
+                </Link>
+              ) : null}
 
               {!mounted || isLoading ? (
                 <button

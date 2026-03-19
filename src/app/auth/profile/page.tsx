@@ -36,6 +36,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      // Initialize form data when user loads
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -50,6 +51,7 @@ export default function ProfilePage() {
         objectUrlRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.firstName, user?.lastName, user?.phone, user?.avatarUrl]);
 
   if (isLoading || status === 'loading') {
@@ -251,7 +253,9 @@ export default function ProfilePage() {
                         value={formData.firstName}
                         onChange={handleChange}
                       />
-                      {errors.firstName ? <p className="mt-1 text-sm text-red-600">{errors.firstName}</p> : null}
+                      {errors.firstName ? (
+                        <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                      ) : null}
                     </div>
                     <div>
                       <label
@@ -270,7 +274,9 @@ export default function ProfilePage() {
                         value={formData.lastName}
                         onChange={handleChange}
                       />
-                      {errors.lastName ? <p className="mt-1 text-sm text-red-600">{errors.lastName}</p> : null}
+                      {errors.lastName ? (
+                        <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+                      ) : null}
                     </div>
                   </div>
 
@@ -291,7 +297,9 @@ export default function ProfilePage() {
                         onChange={handleChange}
                       />
                     </div>
-                    {errors.phone ? <p className="mt-1 text-sm text-red-600">{errors.phone}</p> : null}
+                    {errors.phone ? (
+                      <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                    ) : null}
                   </div>
                 </div>
 

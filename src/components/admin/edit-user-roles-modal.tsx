@@ -7,7 +7,6 @@ import { useUpdateUserRoles } from '@/lib/admin/mutations';
 import { useUser } from '@/lib/admin/queries';
 import { UserRole } from '@/types/auth';
 
-
 interface EditUserRolesModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,9 +23,12 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
     if (user) {
       setSelectedRoles(user.roles);
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.roles?.length]);
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   const handleToggleRole = (role: UserRole) => {
     setSelectedRoles((prev) =>
@@ -128,9 +130,11 @@ export function EditUserRolesModal({ isOpen, onClose, userId }: EditUserRolesMod
                 ))}
               </div>
 
-              {selectedRoles.length === 0 ? <div className="bg-highlight/5 border-highlight/10 mt-4 rounded-xl border p-3">
+              {selectedRoles.length === 0 ? (
+                <div className="bg-highlight/5 border-highlight/10 mt-4 rounded-xl border p-3">
                   <p className="text-highlight-dark text-sm">⚠️ User must have at least one role</p>
-                </div> : null}
+                </div>
+              ) : null}
             </>
           ) : (
             <p className="py-8 text-center text-gray-500">User not found</p>

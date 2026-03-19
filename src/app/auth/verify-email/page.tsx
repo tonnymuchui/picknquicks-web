@@ -21,7 +21,7 @@ function VerifyEmailContent() {
     if (token) {
       verifyEmail.mutate(token);
     }
-  }, [token]);
+  }, [token, verifyEmail]);
 
   const handleResend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,11 +151,11 @@ function VerifyEmailContent() {
         </div>
         <h2 className="mt-6 text-2xl font-bold text-gray-900">Check Your Email</h2>
         <p className="mt-2 text-gray-600">
-          We've sent a verification email to your inbox. Please click the link in the email to
+          We&apos;ve sent a verification email to your inbox. Please click the link in the email to
           verify your account.
         </p>
         <p className="mt-4 text-sm text-gray-500">
-          Didn't receive the email? Check your spam folder or request a new one.
+          Didn&apos;t receive the email? Check your spam folder or request a new one.
         </p>
         <button
           className="text-primary hover:text-primary-light mt-6 inline-block text-sm font-medium"

@@ -10,7 +10,6 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
-  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,7 +27,9 @@ export default function AdminPage() {
           <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard</h1>
-              <p className="text-sm text-gray-500">Welcome back. Here's what's happening today.</p>
+              <p className="text-sm text-gray-500">
+                Welcome back. Here&apos;s what&apos;s happening today.
+              </p>
             </div>
           </div>
         </div>
@@ -135,7 +136,8 @@ function StatCard({ title, value, icon, iconBg, iconColor, change, isAlert }: St
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
-          {change ? <div
+          {change ? (
+            <div
               className={`mt-2 flex items-center gap-1 text-xs font-medium ${isAlert ? 'text-accent' : isPositive ? 'text-secondary-dark' : 'text-highlight'}`}
             >
               {isPositive ? (
@@ -144,7 +146,8 @@ function StatCard({ title, value, icon, iconBg, iconColor, change, isAlert }: St
                 <TrendingDown className="h-3 w-3" />
               )}
               {change} from last month
-            </div> : null}
+            </div>
+          ) : null}
         </div>
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}

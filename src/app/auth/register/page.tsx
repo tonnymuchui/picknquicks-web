@@ -11,7 +11,6 @@ import { useAuth } from '@/lib/auth/hooks';
 import { useRegister } from '@/lib/auth/mutations';
 import { registerSchema, type RegisterInput } from '@/lib/schemas/auth.schema';
 
-
 export default function RegisterPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
@@ -30,6 +29,7 @@ export default function RegisterPage() {
     mode: 'onChange',
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const password = watch('password');
 
   if (isAuthenticated) {
@@ -42,29 +42,53 @@ export default function RegisterPage() {
   };
 
   const getPasswordStrength = (pwd: string): number => {
-    if (!pwd) {return 0;}
+    if (!pwd) {
+      return 0;
+    }
     let strength = 0;
-    if (pwd.length >= 8) {strength++;}
-    if (/[a-z]/.test(pwd)) {strength++;}
-    if (/[A-Z]/.test(pwd)) {strength++;}
-    if (/[0-9]/.test(pwd)) {strength++;}
-    if (/[@#$%^&+=]/.test(pwd)) {strength++;}
+    if (pwd.length >= 8) {
+      strength++;
+    }
+    if (/[a-z]/.test(pwd)) {
+      strength++;
+    }
+    if (/[A-Z]/.test(pwd)) {
+      strength++;
+    }
+    if (/[0-9]/.test(pwd)) {
+      strength++;
+    }
+    if (/[@#$%^&+=]/.test(pwd)) {
+      strength++;
+    }
     return strength;
   };
 
   const passwordStrength = getPasswordStrength(password);
 
   const getStrengthColor = (strength: number): string => {
-    if (strength <= 2) {return 'bg-red-500';}
-    if (strength <= 3) {return 'bg-highlight';}
-    if (strength <= 4) {return 'bg-secondary';}
+    if (strength <= 2) {
+      return 'bg-red-500';
+    }
+    if (strength <= 3) {
+      return 'bg-highlight';
+    }
+    if (strength <= 4) {
+      return 'bg-secondary';
+    }
     return 'bg-primary';
   };
 
   const getStrengthText = (strength: number): string => {
-    if (strength <= 2) {return 'Weak';}
-    if (strength <= 3) {return 'Fair';}
-    if (strength <= 4) {return 'Good';}
+    if (strength <= 2) {
+      return 'Weak';
+    }
+    if (strength <= 3) {
+      return 'Fair';
+    }
+    if (strength <= 4) {
+      return 'Good';
+    }
     return 'Strong';
   };
 
@@ -144,7 +168,9 @@ export default function RegisterPage() {
                   placeholder="John"
                   type="text"
                 />
-                {errors.firstName ? <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p> : null}
+                {errors.firstName ? (
+                  <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+                ) : null}
               </div>
 
               <div>
@@ -162,7 +188,9 @@ export default function RegisterPage() {
                   placeholder="Doe"
                   type="text"
                 />
-                {errors.lastName ? <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p> : null}
+                {errors.lastName ? (
+                  <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+                ) : null}
               </div>
             </div>
 
@@ -179,7 +207,9 @@ export default function RegisterPage() {
                 placeholder="john@example.com"
                 type="email"
               />
-              {errors.email ? <p className="mt-1 text-sm text-red-600">{errors.email.message}</p> : null}
+              {errors.email ? (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              ) : null}
             </div>
 
             <div>
@@ -195,7 +225,9 @@ export default function RegisterPage() {
                 placeholder="+254712345678"
                 type="tel"
               />
-              {errors.phone ? <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p> : null}
+              {errors.phone ? (
+                <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+              ) : null}
             </div>
 
             <div>
@@ -221,7 +253,8 @@ export default function RegisterPage() {
                 </button>
               </div>
 
-              {password ? <div className="mt-2">
+              {password ? (
+                <div className="mt-2">
                   <div className="flex items-center space-x-2">
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
                       <div
@@ -235,9 +268,12 @@ export default function RegisterPage() {
                       {getStrengthText(passwordStrength)}
                     </span>
                   </div>
-                </div> : null}
+                </div>
+              ) : null}
 
-              {errors.password ? <p className="mt-1 text-sm text-red-600">{errors.password.message}</p> : null}
+              {errors.password ? (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              ) : null}
 
               <div className="mt-2 space-y-1 text-xs text-gray-500">
                 <div className="flex items-center space-x-1">
@@ -308,7 +344,9 @@ export default function RegisterPage() {
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {errors.confirmPassword ? <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p> : null}
+              {errors.confirmPassword ? (
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+              ) : null}
             </div>
 
             <button

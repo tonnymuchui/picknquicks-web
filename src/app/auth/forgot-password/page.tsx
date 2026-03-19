@@ -24,10 +24,10 @@ export default function ForgotPasswordPage() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-gray-900">Check Your Email</h2>
           <p className="mt-2 text-gray-600">
-            We've sent password reset instructions to <strong>{email}</strong>
+            We&apos;ve sent password reset instructions to <strong>{email}</strong>
           </p>
           <p className="mt-4 text-sm text-gray-500">
-            The link will expire in 1 hour. If you don't see the email, check your spam folder.
+            The link will expire in 1 hour. If you don&apos;t see the email, check your spam folder.
           </p>
           <Link
             className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 mt-6 inline-block w-full rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-gray-900">Forgot Password?</h2>
           <p className="mt-2 text-gray-600">
-            No worries! Enter your email and we'll send you reset instructions.
+            No worries! Enter your email and we&apos;ll send you reset instructions.
           </p>
         </div>
 

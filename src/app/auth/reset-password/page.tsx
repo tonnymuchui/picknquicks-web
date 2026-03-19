@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Eye, EyeOff, CheckCircle2, XCircle, Key } from 'lucide-react';
+import { Loader2, Eye, EyeOff, XCircle, Key } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -12,7 +12,6 @@ import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/schemas/auth
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams.get('token');
 
   const resetPassword = useResetPassword();
@@ -33,6 +32,7 @@ function ResetPasswordContent() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const password = watch('newPassword');
 
   useEffect(() => {
@@ -68,13 +68,25 @@ function ResetPasswordContent() {
   };
 
   const getPasswordStrength = (pwd: string): number => {
-    if (!pwd) {return 0;}
+    if (!pwd) {
+      return 0;
+    }
     let strength = 0;
-    if (pwd.length >= 8) {strength++;}
-    if (/[a-z]/.test(pwd)) {strength++;}
-    if (/[A-Z]/.test(pwd)) {strength++;}
-    if (/[0-9]/.test(pwd)) {strength++;}
-    if (/[@#$%^&+=]/.test(pwd)) {strength++;}
+    if (pwd.length >= 8) {
+      strength++;
+    }
+    if (/[a-z]/.test(pwd)) {
+      strength++;
+    }
+    if (/[A-Z]/.test(pwd)) {
+      strength++;
+    }
+    if (/[0-9]/.test(pwd)) {
+      strength++;
+    }
+    if (/[@#$%^&+=]/.test(pwd)) {
+      strength++;
+    }
     return strength;
   };
 
@@ -118,7 +130,8 @@ function ResetPasswordContent() {
               </button>
             </div>
 
-            {password ? <div className="mt-2">
+            {password ? (
+              <div className="mt-2">
                 <div className="flex items-center space-x-2">
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
                     <div
@@ -135,9 +148,12 @@ function ResetPasswordContent() {
                     />
                   </div>
                 </div>
-              </div> : null}
+              </div>
+            ) : null}
 
-            {errors.newPassword ? <p className="mt-1 text-sm text-red-600">{errors.newPassword.message}</p> : null}
+            {errors.newPassword ? (
+              <p className="mt-1 text-sm text-red-600">{errors.newPassword.message}</p>
+            ) : null}
           </div>
 
           <div>
@@ -165,7 +181,9 @@ function ResetPasswordContent() {
                 )}
               </button>
             </div>
-            {errors.confirmPassword ? <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p> : null}
+            {errors.confirmPassword ? (
+              <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+            ) : null}
           </div>
 
           <button

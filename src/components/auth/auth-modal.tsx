@@ -2,7 +2,6 @@
 
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,7 +11,9 @@ interface AuthModalProps {
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const router = useRouter();
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   const handleLogin = () => {
     onClose();

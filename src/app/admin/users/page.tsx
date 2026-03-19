@@ -4,7 +4,6 @@ import {
   Search,
   Filter,
   UserPlus,
-  Edit,
   Trash2,
   Shield,
   CheckCircle,
@@ -16,10 +15,9 @@ import { useState } from 'react';
 import { CreateStaffModal } from '@/components/admin/create-staff-modal';
 import { EditUserRolesModal } from '@/components/admin/edit-user-roles-modal';
 import { ProtectedRoute } from '@/components/auth/protected-route';
-import { useUpdateUserRoles, useToggleUserStatus, useDeleteUser } from '@/lib/admin/mutations';
+import { useToggleUserStatus, useDeleteUser } from '@/lib/admin/mutations';
 import { useUsers } from '@/lib/admin/queries';
 import { UserRole } from '@/types/auth';
-
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
@@ -252,7 +250,8 @@ export default function AdminUsersPage() {
                 </table>
               </div>
 
-              {usersData && usersData.totalPages > 1 ? <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
+              {usersData && usersData.totalPages > 1 ? (
+                <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
                   <div className="text-sm text-gray-500">
                     Showing page {page + 1} of {usersData.totalPages}
                   </div>
@@ -272,20 +271,23 @@ export default function AdminUsersPage() {
                       Next
                     </button>
                   </div>
-                </div> : null}
+                </div>
+              ) : null}
             </div>
           )}
         </div>
       </div>
 
-      {selectedUserId ? <EditUserRolesModal
+      {selectedUserId ? (
+        <EditUserRolesModal
           isOpen={isEditModalOpen}
           userId={selectedUserId}
           onClose={() => {
             setIsEditModalOpen(false);
             setSelectedUserId(null);
           }}
-        /> : null}
+        />
+      ) : null}
 
       <CreateStaffModal isOpen={isCreateStaffOpen} onClose={() => setIsCreateStaffOpen(false)} />
     </ProtectedRoute>

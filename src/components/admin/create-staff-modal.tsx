@@ -8,12 +8,15 @@ import { z } from 'zod';
 import { useCreateStaff } from '@/lib/admin/mutations';
 import { UserRole } from '@/types/auth';
 
-
 const createStaffSchema = z.object({
   email: z.string().email('Invalid email address'),
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number').optional().or(z.literal('')),
+  phone: z
+    .string()
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number')
+    .optional()
+    .or(z.literal('')),
   roles: z.array(z.nativeEnum(UserRole)).min(1, 'Select at least one role'),
 });
 
@@ -41,12 +44,13 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedRoles = watch('roles');
 
   const handleToggleRole = (role: UserRole) => {
     const currentRoles = selectedRoles || [];
     const newRoles = currentRoles.includes(role)
-      ? currentRoles.filter(r => r !== role)
+      ? currentRoles.filter((r) => r !== role)
       : [...currentRoles, role];
     setValue('roles', newRoles);
   };
@@ -65,93 +69,97 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
     onClose();
   };
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
+      <div className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <div className="sticky top-0 flex items-center justify-between rounded-t-2xl border-b border-gray-100 bg-white p-5">
           <div className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-primary" />
+            <UserPlus className="text-primary h-5 w-5" />
             <h2 className="text-lg font-semibold text-gray-900">Create Staff Member</h2>
           </div>
           <button
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
             onClick={handleClose}
           >
             <X size={24} />
           </button>
         </div>
 
-        <form className="p-5 space-y-5" onSubmit={handleSubmit(onSubmit)}>
+        <form className="space-y-5 p-5" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Personal Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h3 className="mb-4 text-base font-semibold text-gray-900">Personal Information</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name
-                </label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">First Name</label>
                 <input
                   {...register('firstName')}
-                  className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="John"
                   type="text"
                 />
-                {errors.firstName ? <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p> : null}
+                {errors.firstName ? (
+                  <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+                ) : null}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name
-                </label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Last Name</label>
                 <input
                   {...register('lastName')}
-                  className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="Doe"
                   type="text"
                 />
-                {errors.lastName ? <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p> : null}
+                {errors.lastName ? (
+                  <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+                ) : null}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
                 <input
                   {...register('email')}
-                  className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="john@picknquicks.com"
                   type="email"
                 />
-                {errors.email ? <p className="mt-1 text-sm text-red-600">{errors.email.message}</p> : null}
+                {errors.email ? (
+                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                ) : null}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   Phone (Optional)
                 </label>
                 <input
                   {...register('phone')}
-                  className="w-full px-3 py-2 border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="+254712345678"
                   type="tel"
                 />
-                {errors.phone ? <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p> : null}
+                {errors.phone ? (
+                  <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                ) : null}
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Assign Roles</h3>
+            <h3 className="mb-4 text-base font-semibold text-gray-900">Assign Roles</h3>
             <div className="space-y-3">
               {[UserRole.STAFF, UserRole.MANAGER, UserRole.ADMIN].map((role) => (
                 <label
                   key={role}
-                  className="flex items-center p-3 border border-gray-100 rounded-xl hover:bg-primary/2 cursor-pointer transition-colors"
+                  className="hover:bg-primary/2 flex cursor-pointer items-center rounded-xl border border-gray-100 p-3 transition-colors"
                 >
                   <input
                     checked={selectedRoles?.includes(role) || false}
-                    className="h-4 w-4 text-primary rounded focus:ring-primary/30"
+                    className="text-primary focus:ring-primary/30 h-4 w-4 rounded"
                     type="checkbox"
                     onChange={() => handleToggleRole(role)}
                   />
@@ -164,12 +172,12 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                     </p>
                   </div>
                   <span
-                    className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
+                    className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${
                       role === UserRole.ADMIN
                         ? 'bg-accent/10 text-accent'
                         : role === UserRole.MANAGER
-                        ? 'bg-highlight/10 text-highlight'
-                        : 'bg-primary/10 text-primary'
+                          ? 'bg-highlight/10 text-highlight'
+                          : 'bg-primary/10 text-primary'
                     }`}
                   >
                     {role}
@@ -177,26 +185,28 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
                 </label>
               ))}
             </div>
-            {errors.roles ? <p className="mt-2 text-sm text-red-600">{errors.roles.message}</p> : null}
+            {errors.roles ? (
+              <p className="mt-2 text-sm text-red-600">{errors.roles.message}</p>
+            ) : null}
           </div>
 
-          <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl">
-            <p className="text-sm text-primary-dark">
-              ℹ️ A temporary password will be generated and sent to the staff member's email.
+          <div className="bg-primary/5 border-primary/10 rounded-xl border p-4">
+            <p className="text-primary-dark text-sm">
+              ℹ️ A temporary password will be generated and sent to the staff member&apos;s email.
               They will be required to change it on first login.
             </p>
           </div>
 
-          <div className="-mx-5 -mb-5 flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/50 p-5 rounded-b-2xl">
+          <div className="-mx-5 -mb-5 flex items-center justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-5">
             <button
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
               type="button"
               onClick={handleClose}
             >
               Cancel
             </button>
             <button
-              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               disabled={createStaff.isPending}
               type="submit"
             >

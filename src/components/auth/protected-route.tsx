@@ -9,7 +9,6 @@ import { AccessDenied } from './access-denied';
 
 import type { UserRole } from '@/types/auth';
 
-
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRoles?: UserRole[];
@@ -29,6 +28,7 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   const { status } = useRequireAuth(requiredRoles);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
