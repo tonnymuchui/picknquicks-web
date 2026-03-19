@@ -1,20 +1,27 @@
-import type { Metadata } from 'next';
+import { Navbar } from '@/components/layout/navbar';
+import { QueryProvider } from '@/lib/providers/query-provider';
 
 import './globals.css';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'PicknQuicks',
-  description: 'PicknQuicks - Your quick pick solution',
+  title: 'PickNQuicks - Your Online Shopping Destination',
+  description: 'Shop the latest products at the best prices',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">{children}</body>
+      <body className="bg-gray-50">
+        <QueryProvider>
+          <Navbar />
+          {children}
+        </QueryProvider>
+      </body>
     </html>
   );
 }
