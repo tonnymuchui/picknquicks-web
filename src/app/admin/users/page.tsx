@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { CreateStaffModal } from '@/components/admin/create-staff-modal';
-import { EditUserRolesModal } from '@/components/admin/edit-user-roles-modal';
+import { CreateStaffModal } from '@/components/admin/auth/create-staff-modal';
+import { EditUserRolesModal } from '@/components/admin/auth/edit-user-roles-modal';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useToggleUserStatus, useDeleteUser } from '@/lib/admin/mutations';
 import { useUsers } from '@/lib/admin/queries';
