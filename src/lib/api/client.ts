@@ -2,11 +2,17 @@ import axios from 'axios';
 
 import { tokenManager } from '../utils/token';
 
+import type { ApiResponse } from '@/types/common';
+
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/';
 
 export const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 apiClient.interceptors.request.use(
@@ -15,20 +21,13 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    if (!(config.data instanceof FormData) && !config.headers['Content-Type']) {
-      config.headers['Content-Type'] = 'application/json';
-    }
-
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
 apiClient.interceptors.response.use(
   (response) => response,
-
   async (error) => {
     const originalRequest = error.config;
 
@@ -36,22 +35,27 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = tokenManager.getRefreshToken();
-
+        const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
-          throw new Error('No refresh token');
+          tokenManager.clearTokens();
+          window.location.href = '/auth/login';
+          return Promise.reject(error);
         }
 
-        const { data } = await axios.post(`${API_URL}auth/refresh-token`, {
-          refreshToken,
-        });
+        const { data } = await axios.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/auth/refresh-token`,
+          null,
+          { params: { refreshToken } }
+        );
 
-        tokenManager.setTokens(data.accessToken, data.refreshToken);
-
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        return apiClient(originalRequest);
+        if (data.success && data.data) {
+          tokenManager.setTokens(data.data.accessToken, data.data.refreshToken);
+          originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
+          return apiClient(originalRequest);
+        }
       } catch (refreshError) {
         tokenManager.clearTokens();
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
