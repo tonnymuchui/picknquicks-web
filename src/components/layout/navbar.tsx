@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 
 import { UserMenu } from '@/components/auth/user-menu';
 import { useAuth } from '@/lib/auth/hooks';
+import { useCategoryTree } from '@/lib/category/categories.queries';
 import { UserRole } from '@/types/auth';
 
 import { CartDropdown } from './cart-dropdown';
@@ -16,10 +17,12 @@ import { AuthModal } from '../auth/auth-modal';
 
 export function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { data: navCategories } = useCategoryTree(true);
   const cart = null;
 
   const [mounted, setMounted] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -64,9 +67,52 @@ export function Navbar() {
               <Link className="font-medium transition-colors hover:text-white" href="/products">
                 Products
               </Link>
-              <Link className="font-medium transition-colors hover:text-white" href="/categories">
-                Categories
-              </Link>
+              <div
+                className="relative"
+                onMouseEnter={() => setIsCategoriesOpen(true)}
+                onMouseLeave={() => setIsCategoriesOpen(false)}
+              >
+                <button className="font-medium transition-colors hover:text-white" type="button">
+                  Categories
+                </button>
+
+                {isCategoriesOpen ? (
+                  <div className="absolute left-0 top-full mt-3 w-80 rounded-xl border border-[#2f2f2f] bg-[#151515] p-3 shadow-xl">
+                    <div className="mb-2 flex items-center justify-between px-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[#9b9b9b]">
+                        Shop by category
+                      </span>
+                      <Link
+                        className="text-xs text-blue-400 transition-colors hover:text-blue-300"
+                        href="/categories"
+                      >
+                        View all
+                      </Link>
+                    </div>
+
+                    {navCategories && navCategories.length > 0 ? (
+                      <div className="space-y-1">
+                        {navCategories.slice(0, 10).map((category) => (
+                          <Link
+                            key={category.id}
+                            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-sm text-white transition hover:bg-[#262626]"
+                            href={`/categories?slug=${encodeURIComponent(category.slug)}`}
+                          >
+                            <span className="truncate">{category.name}</span>
+                            <span className="text-xs text-[#8d8d8d]">
+                              {category.children.length > 0
+                                ? `${category.children.length} sub`
+                                : ''}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="px-2 py-1 text-sm text-[#9b9b9b]">No categories available</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
               <Link className="font-medium transition-colors hover:text-white" href="/deals">
                 Deals
               </Link>
