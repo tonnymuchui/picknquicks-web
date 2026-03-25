@@ -2,12 +2,18 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-import { type ApiResponse, type AuthResponse, type LoginRequest, type RegisterRequest, type User , UserRole } from '@/types/auth';
+import {
+  type ApiResponse,
+  type AuthResponse,
+  type LoginRequest,
+  type RegisterRequest,
+  type User,
+  UserRole,
+} from '@/types/auth';
 
 import { authKeys } from './queries';
 import { apiClient } from '../api/client';
 import { tokenManager } from '../utils/token';
-
 
 function normalizeUserPayload(payload: unknown): User {
   const data = payload as Record<string, unknown> | User;
@@ -64,10 +70,10 @@ export function useLogin() {
 
       if (isAdmin || isStaff || isManager) {
         toast.success(`Welcome back, ${data.user.firstName}!`);
-        router.push('/admin');
+        router.replace('/admin/dashboard');
       } else {
         toast.success('Welcome back!');
-        router.push('/');
+        router.replace('/');
       }
     },
 

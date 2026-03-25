@@ -4,7 +4,6 @@ import { tokenManager } from '../utils/token';
 
 import type { ApiResponse } from '@/types/common';
 
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/';
 
 export const apiClient = axios.create({
@@ -21,6 +20,11 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -42,7 +46,9 @@ apiClient.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        const { data } = await axios.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
+        const { data } = await axios.post<
+          ApiResponse<{ accessToken: string; refreshToken: string }>
+        >(
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/auth/refresh-token`,
           null,
           { params: { refreshToken } }
