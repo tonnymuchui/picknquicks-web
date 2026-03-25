@@ -7,18 +7,24 @@ import { useState } from 'react';
 
 import { useAuth } from '@/lib/auth/hooks';
 import { useLogin } from '@/lib/auth/mutations';
+import { UserRole } from '@/types/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const login = useLogin();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  if (isAuthenticated) {
-    router.push('/');
+  if (isAuthenticated && user) {
+    const hasAdminRole = [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF].includes(user.roles[0]);
+    if (hasAdminRole) {
+      router.push('/admin/dashboard');
+    } else {
+      router.push('/');
+    }
     return null;
   }
 

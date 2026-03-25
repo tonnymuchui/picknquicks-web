@@ -3,7 +3,7 @@
 import { Plus, Edit, Trash2, Shield, Loader2, Search } from 'lucide-react';
 import { useState } from 'react';
 
-import { RoleModal } from '@/components/admin/role-modal';
+import { RoleModal } from '@/components/admin/auth/role-modal';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useDeleteRole } from '@/lib/admin/mutations';
 import { useRoles } from '@/lib/admin/queries';
