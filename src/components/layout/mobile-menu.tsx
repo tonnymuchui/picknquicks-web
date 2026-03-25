@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Home, Package, Grid, Percent, Shield } from 'lucide-react';
+import { X, Home, Package, Grid, Percent, Shield, ChevronDown, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -18,6 +18,12 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { data: navCategories } = useCategoryTree(true);
   const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(false);
 
+  const navItems = [
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/products', label: 'Shop', icon: Package },
+    { href: '/deals', label: 'Deals', icon: Percent },
+  ];
+
   if (!isOpen) {
     return null;
   }
@@ -28,123 +34,152 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={onClose} />
+      <div
+        className="animate-in fade-in fixed inset-0 z-40 bg-black/40 duration-200 md:hidden"
+        onClick={onClose}
+      />
 
-      <div className="fixed left-0 top-0 z-50 h-full w-80 transform bg-[#1a1a1a] transition-transform md:hidden">
-        <div className="p-6">
-          <div className="mb-8 flex items-center justify-between">
-            <Link className="flex items-center gap-2" href="/" onClick={onClose}>
-              <div className="bg-linear-to-br flex h-10 w-10 items-center justify-center rounded-lg from-blue-500 to-purple-600">
-                <span className="text-xl font-bold text-white">PQ</span>
+      <div className="animate-in slide-in-from-left border-primary-light/20 bg-primary-dark fixed left-0 top-0 z-50 h-screen w-[85vw] max-w-sm border-r duration-300 md:hidden">
+        <div className="flex h-full flex-col">
+          {/* Header */}
+          <div className="border-primary-light/20 flex items-center justify-between border-b px-5 py-4">
+            <Link className="flex items-center gap-2.5" href="/" onClick={onClose}>
+              <div className="border-secondary/40 from-secondary/20 to-secondary/5 flex h-10 w-10 items-center justify-center rounded-lg border bg-gradient-to-br transition-transform duration-300">
+                <span className="text-secondary text-lg font-bold">PQ</span>
               </div>
-              <span className="text-xl font-bold text-white">PickNQuicks</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-secondary text-sm font-bold">PickNQuicks</span>
+                <span className="text-secondary/50 text-[10px]">Shop Smart</span>
+              </div>
             </Link>
-            <button className="text-gray-400 transition-colors hover:text-white" onClick={onClose}>
-              <X size={24} />
+            <button
+              aria-label="Close navigation menu"
+              className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
+              onClick={onClose}
+            >
+              <X className="transition-transform duration-300 group-hover:scale-110" size={24} />
             </button>
           </div>
 
-          <nav className="space-y-4">
-            <Link
-              className="flex items-center gap-3 py-2 text-gray-300 transition-colors hover:text-white"
-              href="/"
-              onClick={onClose}
-            >
-              <Home size={20} />
-              <span>Home</span>
-            </Link>
+          {/* Navigation Content */}
+          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+            {navItems.map((item) => {
+              const Icon = item.icon;
 
-            <Link
-              className="flex items-center gap-3 py-2 text-gray-300 transition-colors hover:text-white"
-              href="/products"
-              onClick={onClose}
-            >
-              <Package size={20} />
-              <span>Products</span>
-            </Link>
+              return (
+                <Link
+                  key={item.href}
+                  className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition-all duration-300"
+                  href={item.href}
+                  onClick={onClose}
+                >
+                  <Icon
+                    className="transition-transform duration-300 group-hover:scale-110"
+                    size={20}
+                  />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
 
-            <div className="rounded-lg border border-gray-800 bg-[#151515] p-3">
+            {/* Categories Section */}
+            <div className="my-2">
               <button
-                className="flex w-full items-center justify-between text-sm font-medium text-gray-200"
+                className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-semibold transition-all duration-300"
                 type="button"
                 onClick={() => setIsCategoriesExpanded((prev) => !prev)}
               >
-                <span className="inline-flex items-center gap-2">
-                  <Grid size={16} />
+                <span className="inline-flex items-center gap-3">
+                  <Grid size={20} />
                   Categories
                 </span>
-                <span className="text-xs text-gray-400">
-                  {isCategoriesExpanded ? 'Hide' : 'Show'}
-                </span>
+                <ChevronDown
+                  className={`transition-transform duration-300 ${isCategoriesExpanded ? 'rotate-180' : ''}`}
+                  size={20}
+                />
               </button>
 
-              {isCategoriesExpanded ? (
-                <div className="mt-3 space-y-2">
+              {isCategoriesExpanded ? <div className="animate-in fade-in slide-in-from-top-2 border-secondary/20 mt-2 space-y-1 border-l-2 pl-3">
                   <Link
-                    className="block rounded-md px-2 py-1.5 text-sm font-medium text-blue-300 transition hover:bg-gray-800 hover:text-blue-200"
+                    className="text-secondary hover:text-secondary-light block rounded-lg px-3 py-2.5 text-xs font-bold transition-colors duration-300"
                     href="/categories"
                     onClick={onClose}
                   >
-                    View all categories
+                    View All Categories →
                   </Link>
 
                   {navCategories && navCategories.length > 0 ? (
                     navCategories.slice(0, 8).map((category) => (
                       <div key={category.id}>
                         <Link
-                          className="block rounded-md px-2 py-1.5 text-sm text-gray-200 transition hover:bg-gray-800 hover:text-white"
+                          className="text-secondary/70 hover:text-secondary block rounded-lg px-3 py-2.5 text-sm transition-colors duration-300"
                           href={`/categories?slug=${encodeURIComponent(category.slug)}`}
                           onClick={onClose}
                         >
                           {category.name}
                         </Link>
-
-                        {category.children.length > 0 ? (
-                          <div className="space-y-1 pl-4">
+                        {category.children.length > 0 ? <div className="border-secondary/20 mt-1.5 space-y-1 border-l pl-2.5">
                             {category.children.slice(0, 3).map((child) => (
                               <Link
                                 key={child.id}
-                                className="block rounded-md px-2 py-1 text-xs text-gray-400 transition hover:bg-gray-800 hover:text-gray-200"
+                                className="text-secondary/60 hover:text-secondary/80 block rounded-lg px-2 py-1.5 text-xs transition-colors duration-300"
                                 href={`/categories?slug=${encodeURIComponent(child.slug)}`}
                                 onClick={onClose}
                               >
                                 {child.name}
                               </Link>
                             ))}
-                          </div>
-                        ) : null}
+                          </div> : null}
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-500">No categories available</p>
+                    <p className="text-secondary/50 px-3 py-2 text-xs">Loading categories...</p>
                   )}
-                </div>
-              ) : null}
+                </div> : null}
             </div>
 
+            {/* Other Links */}
+            <div className="border-primary-light/20 my-2 border-t" />
+
             <Link
-              className="flex items-center gap-3 py-2 text-gray-300 transition-colors hover:text-white"
-              href="/deals"
+              className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition-all duration-300"
+              href="/wishlist"
               onClick={onClose}
             >
-              <Percent size={20} />
-              <span>Deals</span>
+              <Heart
+                className="transition-transform duration-300 group-hover:scale-110"
+                size={20}
+              />
+              <span>Wishlist</span>
             </Link>
 
-            {isAuthenticated && isAdminUser ? (
-              <>
-                <div className="my-4 border-t border-gray-700" />
-                <Link
-                  className="flex items-center gap-3 py-2 text-yellow-400 transition-colors hover:text-yellow-300"
-                  href="/admin"
-                  onClick={onClose}
-                >
-                  <Shield size={20} />
-                  <span>Admin Dashboard</span>
-                </Link>
-              </>
-            ) : null}
+            {isAuthenticated ? <Link
+                className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition-all duration-300"
+                href="/orders"
+                onClick={onClose}
+              >
+                <Package
+                  className="transition-transform duration-300 group-hover:scale-110"
+                  size={20}
+                />
+                <span>My Orders</span>
+              </Link> : null}
           </nav>
+
+          {/* Footer Actions */}
+          <div className="border-primary-light/20 border-t px-3 py-4">
+            {isAuthenticated && isAdminUser ? <Link
+                className="border-secondary/30 text-secondary hover:border-secondary hover:bg-secondary/10 group flex items-center justify-center gap-2 rounded-lg border px-3 py-3 text-sm font-semibold transition-all duration-300"
+                href="/admin"
+                onClick={onClose}
+              >
+                <Shield
+                  className="transition-transform duration-300 group-hover:scale-110"
+                  size={18}
+                />
+                <span>Admin Panel</span>
+              </Link> : null}
+          </div>
         </div>
       </div>
     </>

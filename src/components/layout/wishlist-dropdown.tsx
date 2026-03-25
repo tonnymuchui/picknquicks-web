@@ -3,18 +3,24 @@
 import { Heart } from 'lucide-react';
 import Link from 'next/link';
 
-export function WishlistDropdown() {
+interface WishlistDropdownProps {
+  className?: string;
+}
+
+export function WishlistDropdown({ className }: WishlistDropdownProps) {
   const wishlistCount = 0;
 
   return (
     <Link
-      className="group relative hover:text-white transition-colors"
+      className={`group relative transition-colors ${className ?? 'text-secondary/80 hover:text-secondary'}`}
       href="/wishlist"
     >
       <Heart size={20} />
-      {wishlistCount > 0 ? <span className="absolute -top-1 -right-1 bg-red-600 text-white h-4 w-4 rounded-full text-xs font-semibold flex items-center justify-center">
+      {wishlistCount > 0 ? (
+        <span className="bg-secondary text-primary-dark absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold">
           {wishlistCount}
-        </span> : null}
+        </span>
+      ) : null}
     </Link>
   );
 }

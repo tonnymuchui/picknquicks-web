@@ -8,18 +8,21 @@ interface CartDropdownProps {
     totalItems: number;
     totalPrice: number;
   } | null;
+  className?: string;
 }
 
-export function CartDropdown({ cart }: CartDropdownProps) {
+export function CartDropdown({ cart, className }: CartDropdownProps) {
   return (
     <Link
-      className="group relative hover:text-white transition-colors"
+      className={`group relative transition-colors ${className ?? 'text-secondary/80 hover:text-secondary'}`}
       href="/cart"
     >
       <ShoppingCart size={20} />
-      {cart && cart.totalItems > 0 ? <span className="absolute -top-1 -right-1 bg-green-600 text-white h-4 w-4 rounded-full text-xs font-semibold flex items-center justify-center">
+      {cart && cart.totalItems > 0 ? (
+        <span className="bg-secondary text-primary-dark absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold">
           {cart.totalItems}
-        </span> : null}
+        </span>
+      ) : null}
     </Link>
   );
 }
