@@ -1,13 +1,11 @@
 'use client';
 
-import { Plus, Edit, Trash2, Loader2, Tag, Layers, ArrowUpDown, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, ArrowUpDown, X, ChevronRight, Layers } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { CategoryFormModal } from '@/components/admin/categories/category-form-modal';
-import { CategoryImageManager } from '@/components/admin/categories/category-image-manager';
 import { ProtectedRoute } from '@/components/auth/protected-route';
-import { CategoryTreeView } from '@/components/categories/category-tree';
 import {
   useDeleteCategory,
   useMoveCategory,
@@ -25,122 +23,58 @@ export default function AdminCategoriesPage() {
   const moveCategory = useMoveCategory();
   const reorderCategories = useReorderCategories();
 
-  const [selectedCategory, setSelectedCategory] = useState<CategoryTree | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isMoveOpen, setIsMoveOpen] = useState(false);
-  const [targetParentId, setTargetParentId] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | undefined>();
-  const { data: selectedCategoryDetails, isLoading: isCategoryLoading } = useCategory(
-    selectedCategory?.id || ''
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [targetParentId, setTargetParentId] = useState('');
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  const activeCategory = selectedCategoryDetails;
-  const activeImage = resolveMediaUrl(activeCategory?.imageUrl);
-  const activeIcon = resolveMediaUrl(activeCategory?.iconUrl);
+  const { data: fullCategoryData } = useCategory(selectedCategoryId || '');
+
+  useEffect(() => {
+    if (fullCategoryData && selectedCategoryId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditingCategory(fullCategoryData);
+    }
+  }, [fullCategoryData, selectedCategoryId]);
 
   const handleCreate = () => {
     setEditingCategory(undefined);
     setIsFormOpen(true);
   };
 
-  const handleEdit = () => {
-    if (!activeCategory) {
-      return;
-    }
-    setEditingCategory(activeCategory);
+  const handleEdit = (category: CategoryTree) => {
+    setSelectedCategoryId(category.id);
     setIsFormOpen(true);
   };
 
-  const handleDelete = () => {
-    if (!selectedCategory) {
-      return;
-    }
-    if (confirm(`Delete "${selectedCategory.name}"? This action cannot be undone.`)) {
-      deleteCategory.mutate(selectedCategory.id);
-      setSelectedCategory(null);
-    }
-  };
-
-  const findNodeById = (nodes: CategoryTree[], id: string): CategoryTree | null => {
-    for (const node of nodes) {
-      if (node.id === id) {
-        return node;
-      }
-
-      const childMatch = findNodeById(node.children, id);
-      if (childMatch) {
-        return childMatch;
+  const handleDelete = (id: string, name: string) => {
+    if (confirm(`Delete "${name}"? This action cannot be undone.`)) {
+      deleteCategory.mutate(id);
+      if (selectedCategoryId === id) {
+        setSelectedCategoryId(null);
       }
     }
-
-    return null;
   };
 
-  const collectDescendantIds = (node: CategoryTree): Set<string> => {
-    const ids = new Set<string>();
-
-    const visit = (current: CategoryTree) => {
-      ids.add(current.id);
-      current.children.forEach(visit);
-    };
-
-    visit(node);
-    return ids;
-  };
-
-  const buildMoveOptions = (
-    nodes: CategoryTree[],
-    excludedIds: Set<string>,
-    level = 0
-  ): Array<{ id: string; label: string }> => {
-    return nodes.flatMap((node) => {
-      const own = excludedIds.has(node.id)
-        ? []
-        : [{ id: node.id, label: `${'— '.repeat(level)}${node.name}` }];
-
-      return [...own, ...buildMoveOptions(node.children, excludedIds, level + 1)];
-    });
-  };
-
-  const moveOptions = (() => {
-    if (!selectedCategory || !categoryTree) {
-      return [] as Array<{ id: string; label: string }>;
-    }
-
-    const selectedNode = findNodeById(categoryTree, selectedCategory.id);
-    if (!selectedNode) {
-      return [] as Array<{ id: string; label: string }>;
-    }
-
-    const excludedIds = collectDescendantIds(selectedNode);
-    return buildMoveOptions(categoryTree, excludedIds);
-  })();
-
-  const handleOpenMove = () => {
-    if (!activeCategory) {
-      return;
-    }
-
-    setTargetParentId(activeCategory.parentId ?? '');
+  const handleMove = (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+    setTargetParentId('');
     setIsMoveOpen(true);
   };
 
   const handleConfirmMove = () => {
-    if (!activeCategory) {
-      return;
-    }
-
-    const currentParentId = activeCategory.parentId ?? '';
-    if (targetParentId === currentParentId) {
-      setIsMoveOpen(false);
+    if (!selectedCategoryId) {
       return;
     }
 
     moveCategory.mutate(
-      { id: activeCategory.id, newParentId: targetParentId || undefined },
+      { id: selectedCategoryId, newParentId: targetParentId || undefined },
       {
         onSuccess: () => {
           setIsMoveOpen(false);
+          setSelectedCategoryId(null);
         },
       }
     );
@@ -158,18 +92,117 @@ export default function AdminCategoriesPage() {
     reorderCategories.mutate(flattenTree(categoryTree));
   };
 
+  const toggleFolder = (id: string) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedFolders(newExpanded);
+  };
+
+  const renderCategoryRow = (category: CategoryTree, level: number = 0) => {
+    const isExpanded = expandedFolders.has(category.id);
+    const hasChildren = category.children.length > 0;
+
+    return (
+      <div key={category.id}>
+        <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-3 transition-colors hover:bg-gray-800/50 md:gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
+            {hasChildren ? (
+              <button
+                className="shrink-0 rounded p-1 transition-colors hover:bg-gray-700"
+                onClick={() => toggleFolder(category.id)}
+              >
+                <ChevronRight
+                  className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                  size={18}
+                />
+              </button>
+            ) : null}
+            {!hasChildren ? <div className="w-6 shrink-0" /> : null}
+
+            <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-yellow-400/30 bg-yellow-400/10 md:h-10 md:w-10">
+                {category.iconUrl ? (
+                  <Image
+                    alt={category.name}
+                    className="h-full w-full object-cover"
+                    height={40}
+                    src={resolveMediaUrl(category.iconUrl) || ''}
+                    width={40}
+                  />
+                ) : (
+                  <Layers className="text-yellow-400" size={16} />
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">{category.name}</p>
+                <p className="truncate text-xs text-gray-500">/{category.slug}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden shrink-0 items-center gap-2 md:flex">
+            <span className="rounded bg-gray-800/50 px-2 py-1 text-xs text-gray-400">
+              Level {category.level}
+            </span>
+          </div>
+
+          <button
+            className="shrink-0 rounded p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-blue-400"
+            title="Edit"
+            onClick={() => handleEdit(category)}
+          >
+            <Edit size={16} />
+          </button>
+
+          <button
+            className="shrink-0 rounded p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-purple-400"
+            title="Move"
+            onClick={() => handleMove(category.id)}
+          >
+            <ArrowUpDown size={16} />
+          </button>
+
+          <button
+            className="shrink-0 rounded p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-red-400"
+            disabled={deleteCategory.isPending}
+            title="Delete"
+            onClick={() => handleDelete(category.id, category.name)}
+          >
+            {deleteCategory.isPending ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Trash2 size={16} />
+            )}
+          </button>
+        </div>
+
+        {hasChildren && isExpanded ? (
+          <div className="bg-gray-900/50">
+            {category.children.map((child) => renderCategoryRow(child, level + 1))}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   return (
     <ProtectedRoute requiredRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8 lg:py-10">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="min-h-screen bg-gray-950 p-4 md:p-8">
+        <div className="space-y-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Categories</h1>
-              <p className="mt-1 text-gray-600">Manage product categories</p>
+              <h1 className="text-2xl font-bold text-white md:text-3xl">Categories</h1>
+              <p className="mt-2 text-sm text-gray-400">Manage product categories</p>
             </div>
+
             <div className="flex flex-wrap gap-2">
               <button
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm font-semibold text-gray-300 transition-colors hover:bg-gray-800 disabled:opacity-50"
                 disabled={reorderCategories.isPending || !categoryTree || categoryTree.length === 0}
                 onClick={handleReorder}
               >
@@ -178,11 +211,11 @@ export default function AdminCategoriesPage() {
                 ) : (
                   <ArrowUpDown size={16} />
                 )}
-                Reorder Tree
+                Reorder All
               </button>
 
               <button
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-lg bg-yellow-400 px-5 py-2.5 text-sm font-semibold text-gray-950 transition-colors hover:bg-yellow-300"
                 onClick={handleCreate}
               >
                 <Plus size={20} />
@@ -193,183 +226,31 @@ export default function AdminCategoriesPage() {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-yellow-400" />
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-              <div className="rounded-2xl border border-white/50 bg-white/90 p-5 shadow-sm backdrop-blur xl:col-span-4 2xl:col-span-3">
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-700">
-                  Category Tree
-                </h2>
-                {categoryTree && categoryTree.length > 0 ? (
-                  <CategoryTreeView
-                    categories={categoryTree}
-                    selectedId={selectedCategory?.id}
-                    onSelect={setSelectedCategory}
-                  />
-                ) : (
-                  <p className="text-sm text-gray-500">No categories yet</p>
-                )}
+          ) : categoryTree && categoryTree.length > 0 ? (
+            <div className="overflow-hidden rounded-xl border border-gray-800 bg-gray-900 shadow-sm md:rounded-2xl">
+              <div className="hidden gap-4 border-b border-gray-800 bg-gray-800/50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 md:grid md:grid-cols-12">
+                <div className="md:col-span-6">Name</div>
+                <div className="md:col-span-2">Level</div>
+                <div className="md:col-span-4">Actions</div>
               </div>
 
-              <div className="rounded-2xl border border-white/50 bg-white/95 p-6 shadow-sm backdrop-blur xl:col-span-8 2xl:col-span-9">
-                {selectedCategory ? (
-                  <div className="space-y-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-900">
-                          {selectedCategory.name}
-                        </h2>
-                        <p className="mt-1 text-sm text-gray-500">/{selectedCategory.slug}</p>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={!activeCategory || moveCategory.isPending}
-                          onClick={handleOpenMove}
-                        >
-                          {moveCategory.isPending ? (
-                            <Loader2 className="animate-spin" size={16} />
-                          ) : (
-                            <Layers size={16} />
-                          )}
-                          Move Category
-                        </button>
-
-                        <button
-                          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={!activeCategory || isCategoryLoading}
-                          onClick={handleEdit}
-                        >
-                          <Edit size={16} />
-                          Edit
-                        </button>
-                        <button
-                          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={deleteCategory.isPending}
-                          onClick={handleDelete}
-                        >
-                          {deleteCategory.isPending ? (
-                            <Loader2 className="animate-spin" size={16} />
-                          ) : (
-                            <Trash2 size={16} />
-                          )}
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-
-                    {isCategoryLoading ? (
-                      <div className="flex items-center justify-center rounded-xl border border-gray-100 bg-gray-50 py-12">
-                        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                      </div>
-                    ) : (
-                      <>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                          <div className="rounded-xl border border-gray-100 bg-white p-4">
-                            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                              <Tag size={14} />
-                              Slug
-                            </div>
-                            <p className="break-all text-sm font-medium text-gray-900">
-                              {activeCategory?.slug ?? '-'}
-                            </p>
-                          </div>
-
-                          <div className="rounded-xl border border-gray-100 bg-white p-4">
-                            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                              <Layers size={14} />
-                              Level
-                            </div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {activeCategory?.level ?? selectedCategory.level}
-                            </p>
-                          </div>
-
-                          <div className="rounded-xl border border-gray-100 bg-white p-4">
-                            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                              <ArrowUpDown size={14} />
-                              Display Order
-                            </div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {activeCategory?.displayOrder ?? selectedCategory.displayOrder}
-                            </p>
-                          </div>
-
-                          <div className="rounded-xl border border-gray-100 bg-white p-4">
-                            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                              Status
-                            </div>
-                            <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                (activeCategory?.active ?? selectedCategory.active)
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-gray-100 text-gray-700'
-                              }`}
-                            >
-                              {(activeCategory?.active ?? selectedCategory.active)
-                                ? 'Active'
-                                : 'Inactive'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-4 border-y border-gray-200 py-6 md:grid-cols-2">
-                          <div className="rounded-xl border border-gray-100 p-4">
-                            <h3 className="mb-3 text-sm font-semibold text-gray-800">
-                              Current Category Image
-                            </h3>
-                            {activeImage ? (
-                              <div className="overflow-hidden rounded-lg border border-gray-200">
-                                <Image
-                                  alt={`${selectedCategory.name} image`}
-                                  className="h-44 w-full object-cover"
-                                  height={360}
-                                  src={activeImage}
-                                  width={640}
-                                />
-                              </div>
-                            ) : (
-                              <p className="text-sm text-gray-500">No image uploaded yet.</p>
-                            )}
-                          </div>
-
-                          <div className="rounded-xl border border-gray-100 p-4">
-                            <h3 className="mb-3 text-sm font-semibold text-gray-800">
-                              Current Category Icon
-                            </h3>
-                            {activeIcon ? (
-                              <div className="inline-flex overflow-hidden rounded-lg border border-gray-200">
-                                <Image
-                                  alt={`${selectedCategory.name} icon`}
-                                  className="h-24 w-24 object-cover"
-                                  height={96}
-                                  src={activeIcon}
-                                  width={96}
-                                />
-                              </div>
-                            ) : (
-                              <p className="text-sm text-gray-500">No icon uploaded yet.</p>
-                            )}
-                          </div>
-                        </div>
-
-                        {activeCategory ? (
-                          <CategoryImageManager
-                            categoryId={selectedCategory.id}
-                            iconUrl={activeCategory.iconUrl}
-                            imageUrl={activeCategory.imageUrl}
-                          />
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex h-72 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 text-gray-500">
-                    Select a category to view details
-                  </div>
-                )}
+              <div className="divide-y divide-gray-800">
+                {categoryTree.map((category) => renderCategoryRow(category))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-700 bg-gray-900/50">
+              <div className="text-center">
+                <p className="mb-4 text-gray-500">No categories yet</p>
+                <button
+                  className="inline-flex items-center gap-2 rounded-lg bg-yellow-400 px-4 py-2.5 text-sm font-semibold text-gray-950 transition-colors hover:bg-yellow-300"
+                  onClick={handleCreate}
+                >
+                  <Plus size={18} />
+                  Create First Category
+                </button>
               </div>
             </div>
           )}
@@ -379,22 +260,23 @@ export default function AdminCategoriesPage() {
       <CategoryFormModal
         category={editingCategory}
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedCategoryId(null);
+          setEditingCategory(undefined);
+        }}
       />
 
-      {isMoveOpen && activeCategory ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
+      {isMoveOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-xl border border-gray-700 bg-gray-900 p-6 shadow-xl">
             <div className="mb-4 flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Move Category</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  Choose the new parent for{' '}
-                  <span className="font-medium">{activeCategory.name}</span>.
-                </p>
+                <h3 className="text-lg font-semibold text-white">Move Category</h3>
+                <p className="mt-1 text-sm text-gray-400">Choose the new parent category</p>
               </div>
               <button
-                className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                className="rounded p-1 text-gray-400 hover:bg-gray-800 hover:text-gray-300"
                 type="button"
                 onClick={() => setIsMoveOpen(false)}
               >
@@ -402,43 +284,41 @@ export default function AdminCategoriesPage() {
               </button>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700" htmlFor="move-parent-select">
+            <div className="mb-5 space-y-2">
+              <label className="text-sm font-medium text-gray-300" htmlFor="move-parent">
                 New Parent Category
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                id="move-parent-select"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-yellow-400 focus:outline-none"
+                id="move-parent"
                 value={targetParentId}
                 onChange={(e) => setTargetParentId(e.target.value)}
               >
                 <option value="">Root (Top Level)</option>
-                {moveOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
+                {categoryTree?.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div className="mt-5 flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-2">
               <button
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-700"
                 type="button"
                 onClick={() => setIsMoveOpen(false)}
               >
                 Cancel
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={
-                  moveCategory.isPending || targetParentId === (activeCategory.parentId ?? '')
-                }
+                className="inline-flex items-center gap-2 rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-gray-950 transition-colors hover:bg-yellow-300 disabled:opacity-50"
+                disabled={moveCategory.isPending}
                 type="button"
                 onClick={handleConfirmMove}
               >
                 {moveCategory.isPending ? <Loader2 className="animate-spin" size={14} /> : null}
-                Save Move
+                Move
               </button>
             </div>
           </div>
