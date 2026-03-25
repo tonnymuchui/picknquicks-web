@@ -34,6 +34,7 @@ export default function AdminCategoriesPage() {
 
   useEffect(() => {
     if (fullCategoryData && selectedCategoryId) {
+      // Sync fetched data to editing state
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditingCategory(fullCategoryData);
     }
