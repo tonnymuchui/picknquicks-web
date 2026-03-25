@@ -18,6 +18,9 @@ export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const menuItemClass =
+    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-secondary/85 transition-colors hover:bg-primary-light/20 hover:text-secondary';
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -30,20 +33,20 @@ export function UserMenu() {
   }, []);
 
   if (isLoading) {
-    return <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />;
+    return <div className="bg-primary-light/35 h-8 w-8 animate-pulse rounded-full" />;
   }
 
   if (!isAuthenticated || !user) {
     return (
       <div className="flex items-center space-x-3">
         <Link
-          className="text-sm font-medium text-gray-300 transition-colors hover:text-white"
+          className="text-secondary/80 hover:text-secondary text-sm font-medium transition-colors"
           href="/auth/login"
         >
           Sign in
         </Link>
         <Link
-          className="bg-secondary text-primary-dark hover:bg-secondary-light rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+          className="bg-secondary text-primary-dark hover:bg-secondary-light rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
           href="/auth/register"
         >
           Sign up
@@ -55,7 +58,7 @@ export function UserMenu() {
   return (
     <div ref={dropdownRef} className="relative">
       <button
-        className="flex items-center gap-2 rounded-xl p-1 transition-colors hover:bg-white/10 focus:outline-none"
+        className="hover:bg-primary-light/25 flex items-center gap-2 rounded-xl p-1 transition-colors focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
       >
         {avatarUrl && user ? (
@@ -67,57 +70,47 @@ export function UserMenu() {
             width={32}
           />
         ) : (
-          <div className="bg-linear-to-br from-primary-light to-primary flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-white">
+          <div className="bg-primary-light flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-white">
             {user?.firstName?.[0]}
             {user?.lastName?.[0]}
           </div>
         )}
-        <span className="hidden text-sm font-medium text-gray-300 md:block">{user?.firstName}</span>
+        <span className="text-secondary/85 hidden text-sm font-medium md:block">
+          {user?.firstName}
+        </span>
         <ChevronDown
-          className={`h-3.5 w-3.5 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`text-secondary/60 h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
-          <div className="bg-linear-to-r from-primary to-primary-light p-4">
-            <p className="text-sm font-semibold text-white">{user.fullName}</p>
-            <p className="mt-0.5 truncate text-xs text-white/70">{user.email}</p>
+        <div className="border-primary-light/30 bg-primary-dark absolute right-0 z-50 mt-3 w-60 overflow-hidden rounded-2xl border shadow-xl">
+          <div className="border-primary-light/30 bg-primary border-b p-4">
+            <p className="text-secondary text-sm font-semibold">{user.fullName}</p>
+            <p className="text-secondary/70 mt-0.5 truncate text-xs">{user.email}</p>
           </div>
 
-          <div className="py-1.5">
-            <Link
-              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
-              href="/auth/profile"
-              onClick={() => setIsOpen(false)}
-            >
-              <User className="h-4 w-4 text-gray-400" />
+          <div className="space-y-1 p-2">
+            <Link className={menuItemClass} href="/auth/profile" onClick={() => setIsOpen(false)}>
+              <User className="h-4 w-4" />
               Profile
             </Link>
 
-            <Link
-              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
-              href="/auth/orders"
-              onClick={() => setIsOpen(false)}
-            >
-              <ShoppingBag className="h-4 w-4 text-gray-400" />
+            <Link className={menuItemClass} href="/auth/orders" onClick={() => setIsOpen(false)}>
+              <ShoppingBag className="h-4 w-4" />
               My Orders
             </Link>
 
-            <Link
-              className="hover:bg-primary/3 flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
-              href="/settings"
-              onClick={() => setIsOpen(false)}
-            >
-              <Settings className="h-4 w-4 text-gray-400" />
+            <Link className={menuItemClass} href="/settings" onClick={() => setIsOpen(false)}>
+              <Settings className="h-4 w-4" />
               Settings
             </Link>
           </div>
 
           {user.roles.includes(UserRole.ADMIN) ? (
-            <div className="border-t border-gray-100 py-1.5">
+            <div className="border-primary-light/30 border-t px-2 py-1.5">
               <Link
-                className="text-primary hover:bg-primary/5 flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
+                className="text-secondary hover:bg-primary-light/20 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors"
                 href="/admin"
                 onClick={() => setIsOpen(false)}
               >
@@ -127,9 +120,9 @@ export function UserMenu() {
             </div>
           ) : null}
 
-          <div className="border-t border-gray-100 py-1.5">
+          <div className="border-primary-light/30 border-t px-2 py-1.5">
             <button
-              className="text-accent hover:bg-accent/5 flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+              className="text-highlight hover:bg-highlight/10 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors"
               onClick={() => {
                 setIsOpen(false);
                 logout.mutate();
