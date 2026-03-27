@@ -1,21 +1,13 @@
 'use client';
 
-import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  User as UserIcon,
-  Save,
-  Check,
-  AlertCircle,
-  Upload,
-} from 'lucide-react';
+import { ArrowLeft, Mail, Phone, User as UserIcon, Save, Check, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useRequireAuth } from '@/lib/auth/hooks';
 import { useUpdateProfile } from '@/lib/auth/mutations';
+import { AuthAvatarManager } from '@/components/auth/avatar-manager';
 import { resolveAvatarUrl } from '@/lib/utils/media';
 
 export default function ProfilePage() {
@@ -28,11 +20,8 @@ export default function ProfilePage() {
     phone: '',
   });
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const objectUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -42,17 +31,9 @@ export default function ProfilePage() {
         lastName: user.lastName || '',
         phone: user.phone || '',
       });
-      setImagePreview(resolveAvatarUrl(user.avatarUrl) || '');
     }
-
-    return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
-      }
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.firstName, user?.lastName, user?.phone, user?.avatarUrl]);
+  }, [user?.firstName, user?.lastName, user?.phone]);
 
   if (isLoading || status === 'loading') {
     return (
@@ -101,45 +82,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      setErrors((prev) => ({
-        ...prev,
-        avatar: 'Please select a valid image file',
-      }));
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        avatar: 'Image size must be less than 5MB',
-      }));
-      return;
-    }
-
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current);
-    }
-    const objectUrl = URL.createObjectURL(file);
-    objectUrlRef.current = objectUrl;
-
-    setSelectedFile(file);
-    setImagePreview(objectUrl);
-    setIsDirty(true);
-    if (errors.avatar) {
-      setErrors((prev) => ({
-        ...prev,
-        avatar: '',
-      }));
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
@@ -147,13 +89,9 @@ export default function ProfilePage() {
       form.append('firstName', formData.firstName);
       form.append('lastName', formData.lastName);
       form.append('phone', formData.phone);
-      if (selectedFile) {
-        form.append('avatarFile', selectedFile);
-      }
 
       updateProfile.mutate(form, {
         onSuccess: () => {
-          setSelectedFile(null);
           setIsDirty(false);
         },
       });
@@ -188,13 +126,13 @@ export default function ProfilePage() {
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               <div className="bg-linear-to-r from-primary to-primary-light border-b border-gray-200 px-6 py-8">
                 <div className="flex items-center gap-4">
-                  <div className="group relative">
-                    {imagePreview ? (
+                  <div>
+                    {user.avatarUrl ? (
                       <Image
                         alt="Profile"
                         className="h-20 w-20 rounded-full border-2 border-white object-cover shadow-lg"
                         height={80}
-                        src={imagePreview}
+                        src={resolveAvatarUrl(user.avatarUrl) || user.avatarUrl}
                         width={80}
                       />
                     ) : (
@@ -203,15 +141,6 @@ export default function ProfilePage() {
                         {user.lastName[0]}
                       </div>
                     )}
-                    <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Upload className="h-6 w-6 text-white" />
-                      <input
-                        accept="image/*"
-                        className="hidden"
-                        type="file"
-                        onChange={handleImageChange}
-                      />
-                    </label>
                   </div>
                   <div className="flex-1">
                     <h1 className="text-2xl font-bold text-white">{user.fullName}</h1>
@@ -314,6 +243,11 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </form>
+
+              <div className="border-t border-gray-200 p-6">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">Profile Picture</h3>
+                <AuthAvatarManager avatarUrl={user.avatarUrl} />
+              </div>
             </div>
           </div>
 
