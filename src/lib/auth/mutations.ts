@@ -3,13 +3,14 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import {
-  type ApiResponse,
   type AuthResponse,
   type LoginRequest,
   type RegisterRequest,
   type User,
   UserRole,
+  type ApiResponse as AuthApiResponse,
 } from '@/types/auth';
+import { type ApiResponse } from '@/types/common';
 
 import { authKeys } from './queries';
 import { apiClient } from '../api/client';
@@ -23,19 +24,19 @@ function normalizeUserPayload(payload: unknown): User {
   return data as User;
 }
 
-function normalizeApiResponse(payload: unknown): ApiResponse {
-  const data = payload as Record<string, unknown> | ApiResponse;
+function normalizeApiResponse(payload: unknown): AuthApiResponse {
+  const data = payload as Record<string, unknown> | AuthApiResponse;
   if (typeof data === 'object' && data !== null && 'data' in data) {
-    return (data as Record<string, unknown>).data as ApiResponse;
+    return (data as Record<string, unknown>).data as AuthApiResponse;
   }
-  return data as ApiResponse;
+  return data as AuthApiResponse;
 }
 
 export function useRegister() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: async (userData: RegisterRequest): Promise<ApiResponse> => {
+    mutationFn: async (userData: RegisterRequest): Promise<AuthApiResponse> => {
       const { data } = await apiClient.post('/auth/register', userData);
       return data;
     },
@@ -106,7 +107,7 @@ export function useVerifyEmail() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: async (token: string): Promise<ApiResponse> => {
+    mutationFn: async (token: string): Promise<AuthApiResponse> => {
       const { data } = await apiClient.get(`/auth/verify-email?token=${token}`);
       return data;
     },
@@ -126,7 +127,7 @@ export function useVerifyEmail() {
 
 export function useResendVerification() {
   return useMutation({
-    mutationFn: async (email: string): Promise<ApiResponse> => {
+    mutationFn: async (email: string): Promise<AuthApiResponse> => {
       const { data } = await apiClient.post(`/auth/resend-verification?email=${email}`);
       return data;
     },
@@ -141,7 +142,7 @@ export function useForgotPassword() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: async (email: string): Promise<ApiResponse> => {
+    mutationFn: async (email: string): Promise<AuthApiResponse> => {
       const { data } = await apiClient.post('/auth/forgot-password', { email });
       return data;
     },
@@ -161,7 +162,7 @@ export function useResetPassword() {
       token: string;
       newPassword: string;
       confirmPassword: string;
-    }): Promise<ApiResponse> => {
+    }): Promise<AuthApiResponse> => {
       const { data } = await apiClient.post('/auth/reset-password', payload);
       return data;
     },
@@ -188,6 +189,54 @@ export function useUpdateProfile() {
     onError: (error: unknown) => {
       const err = error as { response?: { data?: { message?: string } } };
       const message = err?.response?.data?.message || 'Failed to update profile';
+      toast.error(message);
+    },
+  });
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (file: File): Promise<User> => {
+      const formData = new FormData();
+      formData.append('avatarFile', file);
+
+      const { data } = await apiClient.post<ApiResponse<User>>('/auth/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      return data.data!;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(authKeys.me(), data);
+      queryClient.invalidateQueries({ queryKey: authKeys.all });
+      toast.success('Avatar uploaded successfully');
+    },
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Failed to upload avatar';
+      toast.error(message);
+    },
+  });
+}
+
+export function useRemoveAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (): Promise<User> => {
+      const { data } = await apiClient.delete<ApiResponse<User>>('/auth/avatar');
+      return data.data!;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(authKeys.me(), data);
+      queryClient.invalidateQueries({ queryKey: authKeys.all });
+      toast.success('Avatar removed successfully');
+    },
+    onError: (error: unknown) => {
+      const err = error as { response?: { data?: { message?: string } } };
+      const message = err?.response?.data?.message || 'Failed to remove avatar';
       toast.error(message);
     },
   });
