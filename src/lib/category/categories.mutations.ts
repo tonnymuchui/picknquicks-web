@@ -1,30 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
+import { useEntityCrud } from '@/lib/hooks/use-entity-crud';
+import { useImageUpload } from '@/lib/hooks/use-image-upload';
 import { apiClient } from '@/lib/api/client';
-
 import { categoryKeys } from './categories.queries';
 
 import type { CreateCategoryInput, UpdateCategoryInput, Category } from '@/types/category';
 import type { ApiResponse } from '@/types/common';
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'response' in error &&
-    typeof (error as { response?: unknown }).response === 'object' &&
-    (error as { response?: unknown }).response !== null
-  ) {
-    const response = (error as { response?: { data?: { message?: unknown } } }).response;
-    const message = response?.data?.message;
-    if (typeof message === 'string' && message.length > 0) {
-      return message;
-    }
-  }
-
-  return fallback;
-}
+import type { AxiosError } from 'axios';
 
 function buildFormData(input: CreateCategoryInput | UpdateCategoryInput): FormData | object {
   const hasFiles =
@@ -47,166 +30,57 @@ function buildFormData(input: CreateCategoryInput | UpdateCategoryInput): FormDa
   return input;
 }
 
+const crudConfig = {
+  entityName: 'Category',
+  endpoint: '/categories',
+  queryKeys: categoryKeys,
+  toFormData: buildFormData,
+};
+
 export function useCreateCategory() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: CreateCategoryInput): Promise<Category> => {
-      const payload = buildFormData(input);
-      const isFormData = payload instanceof FormData;
-
-      const { data } = await apiClient.post<ApiResponse<Category>>('/categories', payload, {
-        headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
-      });
-
-      return data.data!;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success('Category created successfully');
-    },
-    onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to create category'));
-    },
-  });
+  const { useCreate } = useEntityCrud<Category, CreateCategoryInput, UpdateCategoryInput>(
+    crudConfig
+  );
+  return useCreate();
 }
 
 export function useUpdateCategory() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      input,
-    }: {
-      id: string;
-      input: UpdateCategoryInput;
-    }): Promise<Category> => {
-      const payload = buildFormData(input);
-      const isFormData = payload instanceof FormData;
-
-      const { data } = await apiClient.put<ApiResponse<Category>>(`/categories/${id}`, payload, {
-        headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
-      });
-
-      return data.data!;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });
-      toast.success('Category updated successfully');
-    },
-    onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to update category'));
-    },
-  });
+  const { useUpdate } = useEntityCrud<Category, CreateCategoryInput, UpdateCategoryInput>(
+    crudConfig
+  );
+  return useUpdate();
 }
 
 export function useDeleteCategory() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      await apiClient.delete(`/categories/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success('Category deleted successfully');
-    },
-    onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to delete category'));
-    },
-  });
+  const { useDelete } = useEntityCrud<Category, CreateCategoryInput, UpdateCategoryInput>(
+    crudConfig
+  );
+  return useDelete();
 }
 
+const imageConfig = {
+  entityName: 'Category',
+  queryKeys: categoryKeys,
+};
+
 export function useUploadCategoryImage() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, file }: { id: string; file: File }): Promise<Category> => {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const { data } = await apiClient.post<ApiResponse<Category>>(
-        `/categories/${id}/image`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
-      );
-
-      return data.data!;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success('Image uploaded successfully');
-    },
-    onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to upload image'));
-    },
-  });
+  const { useUpload } = useImageUpload<Category>(imageConfig);
+  return useUpload((id) => `/categories/${id}/image`, 'Image');
 }
 
 export function useUploadCategoryIcon() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, file }: { id: string; file: File }): Promise<Category> => {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const { data } = await apiClient.post<ApiResponse<Category>>(
-        `/categories/${id}/icon`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
-      );
-
-      return data.data!;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success('Icon uploaded successfully');
-    },
-    onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to upload icon'));
-    },
-  });
+  const { useUpload } = useImageUpload<Category>(imageConfig);
+  return useUpload((id) => `/categories/${id}/icon`, 'Icon');
 }
 
 export function useRemoveCategoryImage() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string): Promise<Category> => {
-      const { data } = await apiClient.delete<ApiResponse<Category>>(`/categories/${id}/image`);
-      return data.data!;
-    },
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success('Image removed successfully');
-    },
-  });
+  const { useRemove } = useImageUpload<Category>(imageConfig);
+  return useRemove((id) => `/categories/${id}/image`, 'Image');
 }
 
 export function useRemoveCategoryIcon() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string): Promise<Category> => {
-      const { data } = await apiClient.delete<ApiResponse<Category>>(`/categories/${id}/icon`);
-      return data.data!;
-    },
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success('Icon removed successfully');
-    },
-  });
+  const { useRemove } = useImageUpload<Category>(imageConfig);
+  return useRemove((id) => `/categories/${id}/icon`, 'Icon');
 }
 
 export function useMoveCategory() {
@@ -235,8 +109,9 @@ export function useMoveCategory() {
       queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });
       toast.success('Category moved successfully');
     },
-    onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to move category'));
+    onError: (error: AxiosError<ApiResponse>) => {
+      const message = error?.response?.data?.message || 'Failed to move category';
+      toast.error(message);
     },
   });
 }
@@ -252,8 +127,9 @@ export function useReorderCategories() {
       queryClient.invalidateQueries({ queryKey: categoryKeys.all });
       toast.success('Categories reordered successfully');
     },
-    onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to reorder categories'));
+    onError: (error: AxiosError<ApiResponse>) => {
+      const message = error?.response?.data?.message || 'Failed to reorder categories';
+      toast.error(message);
     },
   });
 }
