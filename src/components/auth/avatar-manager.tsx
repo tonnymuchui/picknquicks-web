@@ -1,7 +1,7 @@
 'use client';
 
-import { useUploadAvatar, useRemoveAvatar } from '@/lib/auth/mutations';
 import { EntityImageManager } from '@/components/common/entity-image-manager';
+import { useUploadAvatar, useRemoveAvatar } from '@/lib/auth/mutations';
 
 interface AuthAvatarManagerProps {
   avatarUrl?: string;
