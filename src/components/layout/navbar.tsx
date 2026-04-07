@@ -1,10 +1,25 @@
 'use client';
 
-import { Search, FileText, User, Menu, ChevronDown, ShoppingBag, Heart } from 'lucide-react';
+import {
+  ChevronDown,
+  FileText,
+  Grid,
+  Heart,
+  Headphones,
+  Menu,
+  Search,
+  Shield,
+  ShoppingBag,
+  Sparkles,
+  Truck,
+  User,
+  X,
+  Zap,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { UserMenu } from '@/components/auth/user-menu';
 import { useAuth } from '@/lib/auth/hooks';
@@ -17,6 +32,13 @@ import { SearchModal } from './search-modal';
 import { AuthModal } from '../auth/auth-modal';
 
 import type { Category } from '@/types/category';
+
+const PROMO_MESSAGES = [
+  { icon: Truck, text: 'Free Shipping on Orders Over $50' },
+  { icon: Sparkles, text: 'New Arrivals Added Daily' },
+  { icon: Headphones, text: '24/7 Customer Support' },
+  { icon: Zap, text: 'Flash Deals — Up to 60% Off' },
+];
 
 export function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -33,418 +55,402 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isPromoVisible, setIsPromoVisible] = useState(true);
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const megaMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setMounted(true); }, []);
+
+  const handleScroll = useCallback(() => {
+    setIsScrolled(window.scrollY > 40);
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (megaMenuRef.current && !megaMenuRef.current.contains(event.target as Node)) {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (megaMenuRef.current && !megaMenuRef.current.contains(e.target as Node)) {
         setIsMegaMenuOpen(false);
       }
     };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMegaMenuOpen(false);
-      }
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {setIsMegaMenuOpen(false);}
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-
+    document.addEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onEscape);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onEscape);
     };
   }, []);
 
   const handleMegaMenuEnter = () => {
-    if (megaMenuTimeoutRef.current) {
-      clearTimeout(megaMenuTimeoutRef.current);
-    }
+    if (megaMenuTimeoutRef.current) {clearTimeout(megaMenuTimeoutRef.current);}
     setIsMegaMenuOpen(true);
   };
-
   const handleMegaMenuLeave = () => {
-    megaMenuTimeoutRef.current = setTimeout(() => setIsMegaMenuOpen(false), 150);
-  };
-
-  const handleAuthClick = () => {
-    setIsAuthModalOpen(true);
-  };
-
-  const closeAuthModal = () => {
-    setIsAuthModalOpen(false);
+    megaMenuTimeoutRef.current = setTimeout(() => setIsMegaMenuOpen(false), 200);
   };
 
   const isActive = (href: string) => pathname === href;
 
-  if (pathname.startsWith('/admin')) {
-    return null;
-  }
+  const isAdminUser =
+    mounted && isAuthenticated &&
+    user?.roles.some((r) => [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(r));
+
+  if (pathname.startsWith('/admin')) {return null;}
 
   return (
     <>
-      <header className="border-primary-light/20 bg-primary-dark/98 sticky top-0 z-50 border-b backdrop-blur-sm transition-all duration-300">
-        <div className="container mx-auto px-4">
-          {/* Desktop Navigation */}
-          <div className="hidden items-center justify-between py-4 md:flex">
-            {/* Logo */}
-            <Link
-              className="group flex items-center gap-2 transition-transform duration-300 hover:scale-105"
-              href="/"
+      <header className={`sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
+
+        {/* ── TIER 1 — Promo Ticker ── */}
+        <div
+          className={`overflow-hidden bg-accent transition-all duration-400 ${
+            isPromoVisible ? 'max-h-9 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="relative flex items-center justify-center">
+            <button
+              aria-label="Dismiss"
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 text-white/50 transition-colors hover:text-white"
+              onClick={() => setIsPromoVisible(false)}
             >
-              <div className="border-secondary/40 from-secondary/20 to-secondary/5 group-hover:border-secondary/60 bg-linear-to-br flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300">
-                <span className="text-secondary text-lg font-bold">PQ</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-secondary text-sm font-bold leading-none">PickNQuicks</span>
-                <span className="text-secondary/50 text-[10px]">Shop Smart</span>
-              </div>
-            </Link>
-
-            {/* Main Navigation */}
-            <nav className="flex items-center gap-1">
-              <Link
-                className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 ${
-                  isActive('/') ? 'text-secondary' : 'text-secondary/70 hover:text-secondary'
-                }`}
-                href="/"
-              >
-                Home
-                {isActive('/') ? (
-                  <div className="from-secondary/0 via-secondary to-secondary/0 bg-linear-to-r absolute bottom-0 left-4 right-4 h-0.5" />
-                ) : null}
-              </Link>
-
-              <Link
-                className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 ${
-                  isActive('/products')
-                    ? 'text-secondary'
-                    : 'text-secondary/70 hover:text-secondary'
-                }`}
-                href="/products"
-              >
-                Shop
-                {isActive('/products') ? (
-                  <div className="from-secondary/0 via-secondary to-secondary/0 bg-linear-to-r absolute bottom-0 left-4 right-4 h-0.5" />
-                ) : null}
-              </Link>
-
-              {/* Categories Megamenu */}
-              <div
-                ref={megaMenuRef}
-                className="relative"
-                onMouseEnter={handleMegaMenuEnter}
-                onMouseLeave={handleMegaMenuLeave}
-              >
-                <button
-                  className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all duration-300 ${
-                    isMegaMenuOpen || pathname.startsWith('/categories')
-                      ? 'text-secondary'
-                      : 'text-secondary/70 hover:text-secondary'
-                  }`}
-                  onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-                >
-                  Categories
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-300 ${isMegaMenuOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-
-                {isMegaMenuOpen && navCategories && navCategories.length > 0 ? (
-                  <div className="w-200 animate-in fade-in slide-in-from-top-2 absolute -left-4 top-full z-50 duration-200">
-                    <div className="h-4" />
-                    <div className="min-h-100 border-primary-light/20 bg-primary-dark/98 flex overflow-hidden rounded-xl border shadow-2xl backdrop-blur-md">
-                      {/* Left Pane - Root Categories */}
-                      <div className="border-primary-light/10 bg-primary-dark/50 w-1/3 shrink-0 border-r py-4">
-                        {navCategories.slice(0, 10).map((category: Category) => {
-                          const currentCategoryId = activeCategoryId || navCategories[0]?.id;
-                          const isActiveCat = currentCategoryId === category.id;
-                          return (
-                            <Link
-                              key={category.id}
-                              className={`flex items-center gap-3 px-6 py-3 transition-colors ${
-                                isActiveCat
-                                  ? 'bg-primary-light/10 text-secondary'
-                                  : 'text-secondary/70 hover:bg-primary-light/5 hover:text-secondary'
-                              }`}
-                              href={`/categories?slug=${encodeURIComponent(category.slug)}`}
-                              onClick={() => setIsMegaMenuOpen(false)}
-                              onMouseEnter={() => setActiveCategoryId(category.id)}
-                            >
-                              {category.iconUrl ? (
-                                <Image
-                                  alt={category.name}
-                                  className={`h-5 w-5 object-contain transition-opacity ${isActiveCat ? 'opacity-100' : 'opacity-60'}`}
-                                  height={20}
-                                  src={resolveMediaUrl(category.iconUrl) || category.iconUrl}
-                                  width={20}
-                                />
-                              ) : null}
-                              <span className="text-sm font-semibold">{category.name}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-
-                      {/* Right Pane - Subcategories */}
-                      <div className="flex-1 p-8">
-                        {(() => {
-                          const currentCategoryId = activeCategoryId || navCategories[0]?.id;
-                          const currentCategory = navCategories.find(
-                            (c: Category) => c.id === currentCategoryId
-                          );
-
-                          if (!currentCategory) {
-                            return null;
-                          }
-
-                          return (
-                            <div className="flex h-full flex-col">
-                              <div className="border-primary-light/10 mb-6 flex items-center justify-between border-b pb-4">
-                                <h3 className="text-secondary text-lg font-bold">
-                                  {currentCategory.name}
-                                </h3>
-                                <Link
-                                  className="text-secondary/70 hover:text-secondary text-sm font-semibold transition-colors"
-                                  href={`/categories?slug=${encodeURIComponent(currentCategory.slug)}`}
-                                  onClick={() => setIsMegaMenuOpen(false)}
-                                >
-                                  View All
-                                </Link>
-                              </div>
-
-                              {currentCategory.children && currentCategory.children.length > 0 ? (
-                                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                                  {currentCategory.children.map((child: Category) => (
-                                    <Link
-                                      key={child.id}
-                                      className="text-secondary/70 hover:text-secondary group flex items-center gap-2 text-sm transition-colors"
-                                      href={`/categories?slug=${encodeURIComponent(child.slug)}`}
-                                      onClick={() => setIsMegaMenuOpen(false)}
-                                    >
-                                      <span className="bg-secondary/30 group-hover:bg-secondary h-1.5 w-1.5 rounded-full transition-colors" />
-                                      {child.name}
-                                    </Link>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-secondary/40 text-sm">
-                                  No subcategories available.
-                                </p>
-                              )}
-
-                              {/* Featured Box */}
-                              <div className="mt-auto pt-8">
-                                <div className="border-secondary/10 bg-primary-light/5 rounded-lg border p-4">
-                                  <p className="text-secondary mb-1 text-xs font-semibold uppercase tracking-wider">
-                                    Featured in {currentCategory.name}
-                                  </p>
-                                  <p className="text-secondary/80 text-sm">
-                                    Explore the latest deals and top rated products.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-
-              <Link
-                className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 ${
-                  isActive('/deals') ? 'text-secondary' : 'text-secondary/70 hover:text-secondary'
-                }`}
-                href="/deals"
-              >
-                Deals
-                {isActive('/deals') ? (
-                  <div className="from-secondary/0 via-secondary to-secondary/0 bg-linear-to-r absolute bottom-0 left-4 right-4 h-0.5" />
-                ) : null}
-              </Link>
-
-              {mounted &&
-              isAuthenticated &&
-              user?.roles.some((role) =>
-                [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(role)
-              ) ? (
-                <Link
-                  className="text-secondary/70 hover:text-secondary relative flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all duration-300"
-                  href="/admin"
-                >
-                  <span>Admin</span>
-                  <span className="bg-secondary/20 text-secondary inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold">
-                    {user.roles.includes(UserRole.ADMIN)
-                      ? '●'
-                      : user.roles.includes(UserRole.MANAGER)
-                        ? 'M'
-                        : 'S'}
+              <X size={13} />
+            </button>
+            <div className="animate-ticker flex whitespace-nowrap py-2">
+              {[...PROMO_MESSAGES, ...PROMO_MESSAGES].map((promo, i) => {
+                const Icon = promo.icon;
+                return (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-2 px-8 text-[11px] font-medium tracking-wide text-white/90"
+                  >
+                    <Icon className="text-secondary" size={12} />
+                    {promo.text}
+                    <span className="ml-6 text-white/20">•</span>
                   </span>
-                </Link>
-              ) : null}
-            </nav>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-1">
-              <button
-                aria-label="Search"
-                className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
-                onClick={() => setIsSearchOpen(true)}
-              >
-                <Search
-                  className="transition-transform duration-300 group-hover:scale-110"
-                  size={20}
-                />
-              </button>
-
-              <Link
-                className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group relative rounded-full p-2 transition-all duration-300"
-                href="/cart"
-              >
-                <ShoppingBag
-                  className="transition-transform duration-300 group-hover:scale-110"
-                  size={20}
-                />
-                {cart?.totalItems && cart.totalItems > 0 ? (
-                  <span className="bg-secondary text-primary-dark absolute -right-1 -top-1 inline-flex h-5 w-5 animate-pulse items-center justify-center rounded-full text-[10px] font-bold">
-                    {cart.totalItems > 99 ? '99+' : cart.totalItems}
-                  </span>
-                ) : null}
-              </Link>
-
-              <Link
-                className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group relative rounded-full p-2 transition-all duration-300"
-                href="/wishlist"
-              >
-                <Heart
-                  className="transition-transform duration-300 group-hover:scale-110"
-                  size={20}
-                />
-              </Link>
-
-              {mounted && isAuthenticated && user ? (
-                <Link
-                  className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
-                  href="/orders"
-                >
-                  <FileText
-                    className="transition-transform duration-300 group-hover:scale-110"
-                    size={20}
-                  />
-                </Link>
-              ) : null}
-
-              {!mounted || isLoading ? (
-                <button aria-label="Loading" className="text-secondary/70 rounded-full p-2">
-                  <User className="animate-pulse" size={20} />
-                </button>
-              ) : isAuthenticated && user ? (
-                <UserMenu />
-              ) : (
-                <button
-                  aria-label="Sign in"
-                  className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
-                  onClick={handleAuthClick}
-                >
-                  <User
-                    className="transition-transform duration-300 group-hover:scale-110"
-                    size={20}
-                  />
-                </button>
-              )}
+                );
+              })}
             </div>
           </div>
+        </div>
 
-          {/* Mobile Navigation */}
-          <div className="flex h-16 items-center justify-between md:hidden">
-            <button
-              aria-label="Open navigation menu"
-              className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
-              onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <Menu className="transition-transform duration-300 group-hover:scale-110" size={24} />
-            </button>
+        {/* ── TIER 2 — Main Bar ── */}
+        <div className={`border-b border-primary-light/15 bg-primary-dark transition-all duration-300 ${isScrolled ? 'py-2' : 'py-3'}`}>
+          <div className="container mx-auto px-4">
 
-            <Link className="flex items-center gap-2" href="/">
-              <div className="border-secondary/40 bg-primary text-secondary flex h-10 w-10 items-center justify-center rounded-lg border transition-transform duration-300 hover:scale-110">
-                <span className="text-xl font-bold">PQ</span>
-              </div>
-            </Link>
-
-            <div className="flex items-center gap-1">
-              <button
-                aria-label="Search"
-                className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
-                onClick={() => setIsSearchOpen(true)}
-              >
-                <Search
-                  className="transition-transform duration-300 group-hover:scale-110"
-                  size={20}
+            {/* Desktop */}
+            <div className="hidden items-center gap-6 md:flex">
+              {/* Logo */}
+              <Link className="shrink-0 transition-transform duration-200 hover:scale-[1.02]" href="/">
+                <Image
+                  priority
+                  alt="PickNQuicks"
+                  className={`object-contain transition-all duration-300 ${isScrolled ? 'h-8 w-auto' : 'h-10 w-auto'}`}
+                  height={40}
+                  src="/mylogo.png"
+                  width={120}
                 />
-              </button>
-
-              <Link
-                className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group relative rounded-full p-2 transition-all duration-300"
-                href="/cart"
-              >
-                <ShoppingBag
-                  className="transition-transform duration-300 group-hover:scale-110"
-                  size={20}
-                />
-                {cart?.totalItems && cart.totalItems > 0 ? (
-                  <span className="bg-secondary text-primary-dark absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold">
-                    {cart.totalItems > 99 ? '99+' : cart.totalItems}
-                  </span>
-                ) : null}
               </Link>
 
-              {mounted && isAuthenticated && user ? (
-                <Link
-                  className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
-                  href="/orders"
-                >
-                  <FileText
-                    className="transition-transform duration-300 group-hover:scale-110"
-                    size={20}
-                  />
-                </Link>
-              ) : null}
+              {/* Search */}
+              <button
+                className="flex flex-1 max-w-xl items-center gap-3 rounded-lg border border-secondary/15 bg-primary-light/20 px-4 py-2 text-sm text-secondary/45 transition-colors hover:border-secondary/30 hover:text-secondary/60"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <Search size={16} />
+                <span className="flex-1 text-left">Search products, brands...</span>
+                <kbd className="hidden text-[10px] text-secondary/25 lg:inline">⌘K</kbd>
+              </button>
 
-              {!mounted || isLoading ? (
-                <button aria-label="Loading" className="text-secondary/70 rounded-full p-2">
-                  <User className="animate-pulse" size={20} />
-                </button>
-              ) : isAuthenticated && user ? (
-                <UserMenu />
-              ) : (
-                <button
-                  aria-label="Sign in"
-                  className="text-secondary/70 hover:bg-secondary/10 hover:text-secondary group rounded-full p-2 transition-all duration-300"
-                  onClick={handleAuthClick}
+              {/* Action icons */}
+              <div className="flex items-center gap-1 shrink-0">
+                <Link
+                  aria-label="Wishlist"
+                  className="rounded-lg p-2 text-secondary/50 transition-colors hover:bg-primary-light/20 hover:text-secondary"
+                  href="/wishlist"
                 >
-                  <User
-                    className="transition-transform duration-300 group-hover:scale-110"
-                    size={20}
-                  />
-                </button>
-              )}
+                  <Heart size={20} />
+                </Link>
+
+                <Link
+                  aria-label="Cart"
+                  className="relative rounded-lg p-2 text-secondary/50 transition-colors hover:bg-primary-light/20 hover:text-secondary"
+                  href="/cart"
+                >
+                  <ShoppingBag size={20} />
+                  {cart?.totalItems && cart.totalItems > 0 ? (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-highlight text-[10px] font-bold text-white animate-badge-bounce">
+                      {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                    </span>
+                  ) : null}
+                </Link>
+
+                {mounted && isAuthenticated && user ? (
+                  <Link
+                    aria-label="Orders"
+                    className="rounded-lg p-2 text-secondary/50 transition-colors hover:bg-primary-light/20 hover:text-secondary"
+                    href="/orders"
+                  >
+                    <FileText size={20} />
+                  </Link>
+                ) : null}
+
+                <div className="mx-1.5 h-5 w-px bg-secondary/10" />
+
+                {!mounted || isLoading ? (
+                  <div className="rounded-lg p-2 text-secondary/50">
+                    <User className="animate-pulse" size={20} />
+                  </div>
+                ) : isAuthenticated && user ? (
+                  <UserMenu />
+                ) : (
+                  <button
+                    className="flex items-center gap-2 rounded-lg border border-secondary/20 px-3.5 py-1.5 text-sm font-semibold text-secondary transition-colors hover:bg-secondary hover:text-primary-dark"
+                    onClick={() => setIsAuthModalOpen(true)}
+                  >
+                    <User size={15} />
+                    Sign In
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Mobile */}
+            <div className="flex h-12 items-center justify-between md:hidden">
+              <button
+                aria-label="Menu"
+                className="rounded-lg p-2 text-secondary/60 transition-colors hover:text-secondary"
+                onClick={() => setIsMobileMenuOpen(true)}
+              >
+                <Menu size={22} />
+              </button>
+              <Link href="/">
+                <Image priority alt="PickNQuicks" className="h-8 w-auto object-contain" height={32} src="/mylogo.png" width={80} />
+              </Link>
+              <div className="flex items-center gap-0.5">
+                <button
+                  aria-label="Search"
+                  className="rounded-lg p-2 text-secondary/60 transition-colors hover:text-secondary"
+                  onClick={() => setIsSearchOpen(true)}
+                >
+                  <Search size={20} />
+                </button>
+                <Link aria-label="Cart" className="relative rounded-lg p-2 text-secondary/60 hover:text-secondary" href="/cart">
+                  <ShoppingBag size={20} />
+                  {cart?.totalItems && cart.totalItems > 0 ? (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-highlight text-[9px] font-bold text-white">
+                      {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                    </span>
+                  ) : null}
+                </Link>
+                {!mounted || isLoading ? (
+                  <div className="rounded-lg p-2 text-secondary/60"><User className="animate-pulse" size={20} /></div>
+                ) : isAuthenticated && user ? (
+                  <UserMenu />
+                ) : (
+                  <button
+                    aria-label="Sign in"
+                    className="rounded-lg p-2 text-secondary/60 transition-colors hover:text-secondary"
+                    onClick={() => setIsAuthModalOpen(true)}
+                  >
+                    <User size={20} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TIER 3 — Nav Row ── */}
+        <div className={`hidden border-b border-primary-light/10 bg-primary-dark/95 backdrop-blur-sm md:block`}>
+          <div className="container mx-auto px-4">
+            <nav className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Link
+                  className={`nav-underline px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    isActive('/') ? 'text-secondary active' : 'text-secondary/55 hover:text-secondary'
+                  }`}
+                  href="/"
+                >
+                  Home
+                </Link>
+                <Link
+                  className={`nav-underline px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    isActive('/products') ? 'text-secondary active' : 'text-secondary/55 hover:text-secondary'
+                  }`}
+                  href="/products"
+                >
+                  Shop
+                </Link>
+
+                {/* Categories */}
+                <div
+                  ref={megaMenuRef}
+                  className="relative"
+                  onMouseEnter={handleMegaMenuEnter}
+                  onMouseLeave={handleMegaMenuLeave}
+                >
+                  <button
+                    className={`nav-underline flex items-center gap-1 px-4 py-2.5 text-sm font-semibold transition-colors ${
+                      isMegaMenuOpen || pathname.startsWith('/categories')
+                        ? 'text-secondary active'
+                        : 'text-secondary/55 hover:text-secondary'
+                    }`}
+                    onClick={() => setIsMegaMenuOpen((p) => !p)}
+                  >
+                    Categories
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* ── MEGA MENU ── */}
+                  {isMegaMenuOpen && navCategories && navCategories.length > 0 ? (
+                    <div className="absolute -left-2 top-full z-50 pt-1">
+                      <div className="animate-float-in w-[640px] rounded-xl border border-primary-light/15 bg-primary-dark shadow-2xl">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-primary-light/10 px-5 py-3">
+                          <span className="text-sm font-bold text-secondary">Categories</span>
+                          <Link
+                            className="text-xs font-medium text-secondary/40 transition-colors hover:text-secondary"
+                            href="/categories"
+                            onClick={() => setIsMegaMenuOpen(false)}
+                          >
+                            View all →
+                          </Link>
+                        </div>
+
+                        {/* Two-column layout */}
+                        <div className="flex">
+                          {/* Left: category list */}
+                          <div className="w-[200px] shrink-0 border-r border-primary-light/10 py-2 custom-scrollbar max-h-[380px] overflow-y-auto">
+                            {navCategories.slice(0, 10).map((category: Category) => {
+                              const currentId = activeCategoryId || navCategories[0]?.id;
+                              const isActiveCat = currentId === category.id;
+                              return (
+                                <button
+                                  key={category.id}
+                                  className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                                    isActiveCat
+                                      ? 'bg-primary-light/15 text-secondary'
+                                      : 'text-secondary/55 hover:bg-primary-light/8 hover:text-secondary/80'
+                                  }`}
+                                  onClick={() => {
+                                    setIsMegaMenuOpen(false);
+                                    window.location.href = `/categories?slug=${encodeURIComponent(category.slug)}`;
+                                  }}
+                                  onMouseEnter={() => setActiveCategoryId(category.id)}
+                                >
+                                  {category.iconUrl ? (
+                                    <Image
+                                      alt={category.name}
+                                      className={`h-4 w-4 object-contain ${isActiveCat ? 'opacity-100' : 'opacity-40'}`}
+                                      height={16}
+                                      src={resolveMediaUrl(category.iconUrl) || category.iconUrl}
+                                      width={16}
+                                    />
+                                  ) : (
+                                    <Grid className={`${isActiveCat ? 'text-secondary' : 'text-secondary/30'}`} size={14} />
+                                  )}
+                                  <span className="font-medium">{category.name}</span>
+                                  {isActiveCat ? (
+                                    <ChevronDown className="ml-auto h-3 w-3 -rotate-90 text-secondary/40" />
+                                  ) : null}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Right: subcategories */}
+                          <div className="flex-1 p-5">
+                            {(() => {
+                              const currentId = activeCategoryId || navCategories[0]?.id;
+                              const current = navCategories.find((c: Category) => c.id === currentId);
+                              if (!current) {return null;}
+
+                              return (
+                                <div>
+                                  <div className="mb-4 flex items-center justify-between">
+                                    <h4 className="text-sm font-bold text-secondary">{current.name}</h4>
+                                    <Link
+                                      className="rounded-md bg-primary-light/15 px-2.5 py-1 text-[11px] font-semibold text-secondary/60 transition-colors hover:bg-primary-light/25 hover:text-secondary"
+                                      href={`/categories?slug=${encodeURIComponent(current.slug)}`}
+                                      onClick={() => setIsMegaMenuOpen(false)}
+                                    >
+                                      Shop {current.name}
+                                    </Link>
+                                  </div>
+
+                                  {current.children && current.children.length > 0 ? (
+                                    <div className="grid grid-cols-2 gap-1">
+                                      {current.children.map((child: Category) => (
+                                        <Link
+                                          key={child.id}
+                                          className="group flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary/55 transition-colors hover:bg-primary-light/10 hover:text-secondary"
+                                          href={`/categories?slug=${encodeURIComponent(child.slug)}`}
+                                          onClick={() => setIsMegaMenuOpen(false)}
+                                        >
+                                          <span className="h-1 w-1 rounded-full bg-secondary/20 group-hover:bg-highlight transition-colors" />
+                                          {child.name}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-secondary/30">No subcategories yet.</p>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Deals */}
+                <Link
+                  className={`nav-underline flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    isActive('/deals') ? 'text-secondary active' : 'text-secondary/55 hover:text-secondary'
+                  }`}
+                  href="/deals"
+                >
+                  Deals
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-dot-pulse absolute inline-flex h-full w-full rounded-full bg-highlight" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-highlight" />
+                  </span>
+                </Link>
+
+                {/* Admin */}
+                {isAdminUser ? (
+                  <Link
+                    className="ml-1 flex items-center gap-1.5 rounded-md bg-accent/15 px-3 py-1 text-xs font-semibold text-accent-light transition-colors hover:bg-accent/25"
+                    href="/admin"
+                  >
+                    <Shield size={12} />
+                    Admin
+                  </Link>
+                ) : null}
+              </div>
+
+              <span className="text-[11px] font-medium tracking-wide text-secondary/20">
+                Premium Tech Solutions
+              </span>
+            </nav>
           </div>
         </div>
       </header>
 
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-      <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>
   );
 }
