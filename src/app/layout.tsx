@@ -5,8 +5,9 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'PickNQuicks - Your Online Shopping Destination',
-  description: 'Shop the latest products at the best prices',
+  title: 'PickNQuicks - Premium Tech Solutions & Online Shopping',
+  description:
+    'Shop the latest products at the best prices. Premium tech solutions, fast delivery, and 24/7 support.',
 };
 
 export default function RootLayout({
@@ -16,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">
+      <body className="bg-gray-50 font-sans antialiased">
         <QueryProvider>
           <Navbar />
           {children}
