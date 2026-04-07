@@ -5,9 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+import { AuthAvatarManager } from '@/components/auth/avatar-manager';
 import { useRequireAuth } from '@/lib/auth/hooks';
 import { useUpdateProfile } from '@/lib/auth/mutations';
-import { AuthAvatarManager } from '@/components/auth/avatar-manager';
 import { resolveAvatarUrl } from '@/lib/utils/media';
 
 export default function ProfilePage() {
