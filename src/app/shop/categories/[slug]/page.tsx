@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronRight, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
 
@@ -13,64 +13,126 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: 'var(--background)' }}
+      >
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--color-highlight)' }} />
       </div>
     );
   }
 
   if (!category) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Category not found</p>
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: 'var(--background)' }}
+      >
+        <p style={{ color: 'var(--muted-foreground)' }}>Category not found</p>
       </div>
     );
   }
 
+  const breadcrumbs = category.fullPath.split(' > ');
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-            <Link className="hover:text-blue-600" href="/categories">Categories</Link>
-            {category.fullPath.split(' > ').slice(0, -1).map((part, idx) => (
-              <span key={idx} className="flex items-center gap-2">
-                <ChevronRight size={16} />
-                <span>{part}</span>
-              </span>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
+      <div className="border-b" style={{ borderColor: 'var(--border)' }}>
+        <div className="container mx-auto px-4 py-12">
+          <div className="mb-8 flex flex-wrap items-center gap-2">
+            <Link
+              className="text-sm font-medium transition-colors"
+              href="/shop/categories"
+              style={{ color: 'var(--color-primary)' }}
+            >
+              Categories
+            </Link>
+            {breadcrumbs.slice(0, -1).map((part, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <ChevronRight size={16} style={{ color: 'var(--muted-foreground)' }} />
+                <span className="text-sm" style={{ color: 'var(--color-primary)' }}>
+                  {part}
+                </span>
+              </div>
             ))}
           </div>
 
-          <div className="flex items-start gap-4">
-            {category.iconUrl ? <span className="text-5xl">{category.iconUrl}</span> : null}
+          <div className="flex items-start gap-6">
+            {category.iconUrl ? <div className="flex-shrink-0 text-6xl">{category.iconUrl}</div> : null}
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">{category.name}</h1>
-              {category.description ? <p className="text-gray-600 mt-2">{category.description}</p> : null}
+              <h1 className="text-5xl font-black" style={{ color: 'var(--color-primary)' }}>
+                {category.name}
+              </h1>
+              {category.description ? <p className="mt-4 max-w-2xl text-lg" style={{ color: 'var(--muted-foreground)' }}>
+                  {category.description}
+                </p> : null}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        {children && children.length > 0 ? <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Subcategories</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="container mx-auto px-4 py-20">
+        {children && children.length > 0 ? <div className="mb-20">
+            <h2 className="mb-8 text-3xl font-bold" style={{ color: 'var(--color-primary)' }}>
+              Subcategories
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {children.map((child) => (
                 <Link
                   key={child.id}
-                  className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4 flex items-center gap-3"
-                  href={`/categories/${child.slug}`}
+                  className="group flex items-center gap-3 rounded-2xl p-5 transition-all duration-300"
+                  href={`/shop/categories/${child.slug}`}
+                  style={{
+                    backgroundColor: 'var(--muted)',
+                    border: '1px solid',
+                    borderColor: 'var(--border)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--color-highlight)';
+                    e.currentTarget.style.backgroundColor = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.backgroundColor = 'var(--muted)';
+                  }}
                 >
-                  {child.iconUrl ? <span className="text-2xl">{child.iconUrl}</span> : null}
-                  <span className="font-medium text-gray-900">{child.name}</span>
+                  <div className="flex-shrink-0 text-3xl">{child.iconUrl || '📦'}</div>
+                  <div className="flex-1">
+                    <span className="font-bold" style={{ color: 'var(--color-primary)' }}>
+                      {child.name}
+                    </span>
+                  </div>
+                  <ArrowRight
+                    className="flex-shrink-0"
+                    size={20}
+                    style={{ color: 'var(--color-highlight)' }}
+                  />
                 </Link>
               ))}
             </div>
           </div> : null}
 
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Products</h2>
-          <p className="text-gray-500">Products will be displayed here</p>
+          <div className="mb-8 flex items-center justify-between">
+            <h2 className="text-3xl font-bold" style={{ color: 'var(--color-primary)' }}>
+              Products
+            </h2>
+            <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+              Coming soon
+            </span>
+          </div>
+          <div
+            className="rounded-2xl border-2 border-dashed p-12 text-center"
+            style={{
+              borderColor: 'var(--border)',
+              backgroundColor: 'var(--muted)',
+            }}
+          >
+            <div className="mb-4 text-6xl">📦</div>
+            <p className="text-lg" style={{ color: 'var(--muted-foreground)' }}>
+              Explore {category.name} products coming soon
+            </p>
+          </div>
         </div>
       </div>
     </div>
