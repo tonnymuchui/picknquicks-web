@@ -10,11 +10,13 @@ import {
   UserRole,
   type ApiResponse as AuthApiResponse,
 } from '@/types/auth';
-import { type ApiResponse } from '@/types/common';
+
 
 import { authKeys } from './queries';
 import { apiClient } from '../api/client';
 import { tokenManager } from '../utils/token';
+
+import type { ApiResponse } from '@/types/common';
 
 function normalizeUserPayload(payload: unknown): User {
   const data = payload as Record<string, unknown> | User;
