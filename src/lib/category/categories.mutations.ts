@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+
+import { apiClient } from '@/lib/api/client';
 import { useEntityCrud } from '@/lib/hooks/use-entity-crud';
 import { useImageUpload } from '@/lib/hooks/use-image-upload';
-import { apiClient } from '@/lib/api/client';
+
 import { categoryKeys } from './categories.queries';
 
 import type { CreateCategoryInput, UpdateCategoryInput, Category } from '@/types/category';
