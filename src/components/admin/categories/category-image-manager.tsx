@@ -1,12 +1,12 @@
 'use client';
 
+import { EntityImageManager } from '@/components/common/entity-image-manager';
 import {
   useUploadCategoryImage,
   useUploadCategoryIcon,
   useRemoveCategoryImage,
   useRemoveCategoryIcon,
 } from '@/lib/category/categories.mutations';
-import { EntityImageManager } from '@/components/common/entity-image-manager';
 
 interface CategoryImageManagerProps {
   categoryId: string;
