@@ -48,10 +48,8 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
     },
   });
 
-  // Auto-generate slug from name for new products
   // eslint-disable-next-line react-hooks/incompatible-library
   const name = watch('name');
-  // Track digital product status for conditional shipping field
   const isDigital = watch('isDigital');
 
   useEffect(() => {
