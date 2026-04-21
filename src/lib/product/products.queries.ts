@@ -46,6 +46,8 @@ export function useProduct(id: string) {
       return data.data!;
     },
     enabled: !!id,
+    staleTime: 30 * 1000, // 30 seconds - shorter than list to catch updates
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 }
 
