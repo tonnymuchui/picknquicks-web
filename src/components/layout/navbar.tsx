@@ -34,7 +34,7 @@ import { AuthModal } from '../auth/auth-modal';
 import type { Category } from '@/types/category';
 
 const PROMO_MESSAGES = [
-  { icon: Truck, text: 'Free Shipping on Orders Over $50' },
+  { icon: Truck, text: 'Free Shipping on Orders Over KSh 50' },
   { icon: Sparkles, text: 'New Arrivals Added Daily' },
   { icon: Headphones, text: '24/7 Customer Support' },
   { icon: Zap, text: 'Flash Deals — Up to 60% Off' },
@@ -61,7 +61,9 @@ export function Navbar() {
   const megaMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 40);
@@ -79,7 +81,9 @@ export function Navbar() {
       }
     };
     const onEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {setIsMegaMenuOpen(false);}
+      if (e.key === 'Escape') {
+        setIsMegaMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', onClickOutside);
     document.addEventListener('keydown', onEscape);
@@ -90,7 +94,9 @@ export function Navbar() {
   }, []);
 
   const handleMegaMenuEnter = () => {
-    if (megaMenuTimeoutRef.current) {clearTimeout(megaMenuTimeoutRef.current);}
+    if (megaMenuTimeoutRef.current) {
+      clearTimeout(megaMenuTimeoutRef.current);
+    }
     setIsMegaMenuOpen(true);
   };
   const handleMegaMenuLeave = () => {
@@ -100,18 +106,22 @@ export function Navbar() {
   const isActive = (href: string) => pathname === href;
 
   const isAdminUser =
-    mounted && isAuthenticated &&
+    mounted &&
+    isAuthenticated &&
     user?.roles.some((r) => [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(r));
 
-  if (pathname.startsWith('/admin')) {return null;}
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>
-      <header className={`sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
-
+      <header
+        className={`sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}
+      >
         {/* ── TIER 1 — Promo Ticker ── */}
         <div
-          className={`overflow-hidden bg-accent transition-all duration-400 ${
+          className={`bg-accent duration-400 overflow-hidden transition-all ${
             isPromoVisible ? 'max-h-9 opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
@@ -142,13 +152,17 @@ export function Navbar() {
         </div>
 
         {/* ── TIER 2 — Main Bar ── */}
-        <div className={`border-b border-primary-light/15 bg-primary-dark transition-all duration-300 ${isScrolled ? 'py-2' : 'py-3'}`}>
+        <div
+          className={`border-primary-light/15 bg-primary-dark border-b transition-all duration-300 ${isScrolled ? 'py-2' : 'py-3'}`}
+        >
           <div className="container mx-auto px-4">
-
             {/* Desktop */}
             <div className="hidden items-center gap-6 md:flex">
               {/* Logo */}
-              <Link className="shrink-0 transition-transform duration-200 hover:scale-[1.02]" href="/">
+              <Link
+                className="shrink-0 transition-transform duration-200 hover:scale-[1.02]"
+                href="/"
+              >
                 <Image
                   priority
                   alt="PickNQuicks"
@@ -161,19 +175,19 @@ export function Navbar() {
 
               {/* Search */}
               <button
-                className="flex flex-1 max-w-xl items-center gap-3 rounded-lg border border-secondary/15 bg-primary-light/20 px-4 py-2 text-sm text-secondary/45 transition-colors hover:border-secondary/30 hover:text-secondary/60"
+                className="border-secondary/15 bg-primary-light/20 text-secondary/45 hover:border-secondary/30 hover:text-secondary/60 flex max-w-xl flex-1 items-center gap-3 rounded-lg border px-4 py-2 text-sm transition-colors"
                 onClick={() => setIsSearchOpen(true)}
               >
                 <Search size={16} />
                 <span className="flex-1 text-left">Search products, brands...</span>
-                <kbd className="hidden text-[10px] text-secondary/25 lg:inline">⌘K</kbd>
+                <kbd className="text-secondary/25 hidden text-[10px] lg:inline">⌘K</kbd>
               </button>
 
               {/* Action icons */}
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex shrink-0 items-center gap-1">
                 <Link
                   aria-label="Wishlist"
-                  className="rounded-lg p-2 text-secondary/50 transition-colors hover:bg-primary-light/20 hover:text-secondary"
+                  className="text-secondary/50 hover:bg-primary-light/20 hover:text-secondary rounded-lg p-2 transition-colors"
                   href="/wishlist"
                 >
                   <Heart size={20} />
@@ -181,12 +195,12 @@ export function Navbar() {
 
                 <Link
                   aria-label="Cart"
-                  className="relative rounded-lg p-2 text-secondary/50 transition-colors hover:bg-primary-light/20 hover:text-secondary"
+                  className="text-secondary/50 hover:bg-primary-light/20 hover:text-secondary relative rounded-lg p-2 transition-colors"
                   href="/cart"
                 >
                   <ShoppingBag size={20} />
                   {cart?.totalItems && cart.totalItems > 0 ? (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-highlight text-[10px] font-bold text-white animate-badge-bounce">
+                    <span className="h-4.5 w-4.5 bg-highlight animate-badge-bounce absolute -right-0.5 -top-0.5 flex items-center justify-center rounded-full text-[10px] font-bold text-white">
                       {cart.totalItems > 99 ? '99+' : cart.totalItems}
                     </span>
                   ) : null}
@@ -195,24 +209,24 @@ export function Navbar() {
                 {mounted && isAuthenticated && user ? (
                   <Link
                     aria-label="Orders"
-                    className="rounded-lg p-2 text-secondary/50 transition-colors hover:bg-primary-light/20 hover:text-secondary"
+                    className="text-secondary/50 hover:bg-primary-light/20 hover:text-secondary rounded-lg p-2 transition-colors"
                     href="/orders"
                   >
                     <FileText size={20} />
                   </Link>
                 ) : null}
 
-                <div className="mx-1.5 h-5 w-px bg-secondary/10" />
+                <div className="bg-secondary/10 mx-1.5 h-5 w-px" />
 
                 {!mounted || isLoading ? (
-                  <div className="rounded-lg p-2 text-secondary/50">
+                  <div className="text-secondary/50 rounded-lg p-2">
                     <User className="animate-pulse" size={20} />
                   </div>
                 ) : isAuthenticated && user ? (
                   <UserMenu />
                 ) : (
                   <button
-                    className="flex items-center gap-2 rounded-lg border border-secondary/20 px-3.5 py-1.5 text-sm font-semibold text-secondary transition-colors hover:bg-secondary hover:text-primary-dark"
+                    className="border-secondary/20 text-secondary hover:bg-secondary hover:text-primary-dark flex items-center gap-2 rounded-lg border px-3.5 py-1.5 text-sm font-semibold transition-colors"
                     onClick={() => setIsAuthModalOpen(true)}
                   >
                     <User size={15} />
@@ -226,38 +240,51 @@ export function Navbar() {
             <div className="flex h-12 items-center justify-between md:hidden">
               <button
                 aria-label="Menu"
-                className="rounded-lg p-2 text-secondary/60 transition-colors hover:text-secondary"
+                className="text-secondary/60 hover:text-secondary rounded-lg p-2 transition-colors"
                 onClick={() => setIsMobileMenuOpen(true)}
               >
                 <Menu size={22} />
               </button>
               <Link href="/">
-                <Image priority alt="PickNQuicks" className="h-8 w-auto object-contain" height={32} src="/mylogo.png" width={80} />
+                <Image
+                  priority
+                  alt="PickNQuicks"
+                  className="h-8 w-auto object-contain"
+                  height={32}
+                  src="/mylogo.png"
+                  width={80}
+                />
               </Link>
               <div className="flex items-center gap-0.5">
                 <button
                   aria-label="Search"
-                  className="rounded-lg p-2 text-secondary/60 transition-colors hover:text-secondary"
+                  className="text-secondary/60 hover:text-secondary rounded-lg p-2 transition-colors"
                   onClick={() => setIsSearchOpen(true)}
                 >
                   <Search size={20} />
                 </button>
-                <Link aria-label="Cart" className="relative rounded-lg p-2 text-secondary/60 hover:text-secondary" href="/cart">
+                <Link
+                  aria-label="Cart"
+                  className="text-secondary/60 hover:text-secondary relative rounded-lg p-2"
+                  href="/cart"
+                >
                   <ShoppingBag size={20} />
                   {cart?.totalItems && cart.totalItems > 0 ? (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-highlight text-[9px] font-bold text-white">
+                    <span className="bg-highlight absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white">
                       {cart.totalItems > 99 ? '99+' : cart.totalItems}
                     </span>
                   ) : null}
                 </Link>
                 {!mounted || isLoading ? (
-                  <div className="rounded-lg p-2 text-secondary/60"><User className="animate-pulse" size={20} /></div>
+                  <div className="text-secondary/60 rounded-lg p-2">
+                    <User className="animate-pulse" size={20} />
+                  </div>
                 ) : isAuthenticated && user ? (
                   <UserMenu />
                 ) : (
                   <button
                     aria-label="Sign in"
-                    className="rounded-lg p-2 text-secondary/60 transition-colors hover:text-secondary"
+                    className="text-secondary/60 hover:text-secondary rounded-lg p-2 transition-colors"
                     onClick={() => setIsAuthModalOpen(true)}
                   >
                     <User size={20} />
@@ -269,13 +296,17 @@ export function Navbar() {
         </div>
 
         {/* ── TIER 3 — Nav Row ── */}
-        <div className={`hidden border-b border-primary-light/10 bg-primary-dark/95 backdrop-blur-sm md:block`}>
+        <div
+          className={`border-primary-light/10 bg-primary-dark/95 hidden border-b backdrop-blur-sm md:block`}
+        >
           <div className="container mx-auto px-4">
             <nav className="flex items-center justify-between">
               <div className="flex items-center">
                 <Link
                   className={`nav-underline px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive('/') ? 'text-secondary active' : 'text-secondary/55 hover:text-secondary'
+                    isActive('/')
+                      ? 'text-secondary active'
+                      : 'text-secondary/55 hover:text-secondary'
                   }`}
                   href="/"
                 >
@@ -283,7 +314,9 @@ export function Navbar() {
                 </Link>
                 <Link
                   className={`nav-underline px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive('/products') ? 'text-secondary active' : 'text-secondary/55 hover:text-secondary'
+                    isActive('/products')
+                      ? 'text-secondary active'
+                      : 'text-secondary/55 hover:text-secondary'
                   }`}
                   href="/products"
                 >
@@ -306,19 +339,20 @@ export function Navbar() {
                     onClick={() => setIsMegaMenuOpen((p) => !p)}
                   >
                     Categories
-                    <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180' : ''}`}
+                    />
                   </button>
 
                   {/* ── MEGA MENU ── */}
                   {isMegaMenuOpen && navCategories && navCategories.length > 0 ? (
                     <div className="absolute -left-2 top-full z-50 pt-1">
-                      <div className="animate-float-in w-[640px] rounded-xl border border-primary-light/15 bg-primary-dark shadow-2xl">
-
+                      <div className="animate-float-in border-primary-light/15 bg-primary-dark w-[640px] rounded-xl border shadow-2xl">
                         {/* Header */}
-                        <div className="flex items-center justify-between border-b border-primary-light/10 px-5 py-3">
-                          <span className="text-sm font-bold text-secondary">Categories</span>
+                        <div className="border-primary-light/10 flex items-center justify-between border-b px-5 py-3">
+                          <span className="text-secondary text-sm font-bold">Categories</span>
                           <Link
-                            className="text-xs font-medium text-secondary/40 transition-colors hover:text-secondary"
+                            className="text-secondary/40 hover:text-secondary text-xs font-medium transition-colors"
                             href="/categories"
                             onClick={() => setIsMegaMenuOpen(false)}
                           >
@@ -329,7 +363,7 @@ export function Navbar() {
                         {/* Two-column layout */}
                         <div className="flex">
                           {/* Left: category list */}
-                          <div className="w-[200px] shrink-0 border-r border-primary-light/10 py-2 custom-scrollbar max-h-[380px] overflow-y-auto">
+                          <div className="border-primary-light/10 custom-scrollbar max-h-[380px] w-[200px] shrink-0 overflow-y-auto border-r py-2">
                             {navCategories.slice(0, 10).map((category: Category) => {
                               const currentId = activeCategoryId || navCategories[0]?.id;
                               const isActiveCat = currentId === category.id;
@@ -356,11 +390,14 @@ export function Navbar() {
                                       width={16}
                                     />
                                   ) : (
-                                    <Grid className={`${isActiveCat ? 'text-secondary' : 'text-secondary/30'}`} size={14} />
+                                    <Grid
+                                      className={`${isActiveCat ? 'text-secondary' : 'text-secondary/30'}`}
+                                      size={14}
+                                    />
                                   )}
                                   <span className="font-medium">{category.name}</span>
                                   {isActiveCat ? (
-                                    <ChevronDown className="ml-auto h-3 w-3 -rotate-90 text-secondary/40" />
+                                    <ChevronDown className="text-secondary/40 ml-auto h-3 w-3 -rotate-90" />
                                   ) : null}
                                 </button>
                               );
@@ -371,15 +408,21 @@ export function Navbar() {
                           <div className="flex-1 p-5">
                             {(() => {
                               const currentId = activeCategoryId || navCategories[0]?.id;
-                              const current = navCategories.find((c: Category) => c.id === currentId);
-                              if (!current) {return null;}
+                              const current = navCategories.find(
+                                (c: Category) => c.id === currentId
+                              );
+                              if (!current) {
+                                return null;
+                              }
 
                               return (
                                 <div>
                                   <div className="mb-4 flex items-center justify-between">
-                                    <h4 className="text-sm font-bold text-secondary">{current.name}</h4>
+                                    <h4 className="text-secondary text-sm font-bold">
+                                      {current.name}
+                                    </h4>
                                     <Link
-                                      className="rounded-md bg-primary-light/15 px-2.5 py-1 text-[11px] font-semibold text-secondary/60 transition-colors hover:bg-primary-light/25 hover:text-secondary"
+                                      className="bg-primary-light/15 text-secondary/60 hover:bg-primary-light/25 hover:text-secondary rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors"
                                       href={`/categories?slug=${encodeURIComponent(current.slug)}`}
                                       onClick={() => setIsMegaMenuOpen(false)}
                                     >
@@ -392,17 +435,19 @@ export function Navbar() {
                                       {current.children.map((child: Category) => (
                                         <Link
                                           key={child.id}
-                                          className="group flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary/55 transition-colors hover:bg-primary-light/10 hover:text-secondary"
+                                          className="text-secondary/55 hover:bg-primary-light/10 hover:text-secondary group flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
                                           href={`/categories?slug=${encodeURIComponent(child.slug)}`}
                                           onClick={() => setIsMegaMenuOpen(false)}
                                         >
-                                          <span className="h-1 w-1 rounded-full bg-secondary/20 group-hover:bg-highlight transition-colors" />
+                                          <span className="bg-secondary/20 group-hover:bg-highlight h-1 w-1 rounded-full transition-colors" />
                                           {child.name}
                                         </Link>
                                       ))}
                                     </div>
                                   ) : (
-                                    <p className="text-sm text-secondary/30">No subcategories yet.</p>
+                                    <p className="text-secondary/30 text-sm">
+                                      No subcategories yet.
+                                    </p>
                                   )}
                                 </div>
                               );
@@ -417,21 +462,23 @@ export function Navbar() {
                 {/* Deals */}
                 <Link
                   className={`nav-underline flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive('/deals') ? 'text-secondary active' : 'text-secondary/55 hover:text-secondary'
+                    isActive('/deals')
+                      ? 'text-secondary active'
+                      : 'text-secondary/55 hover:text-secondary'
                   }`}
                   href="/deals"
                 >
                   Deals
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-dot-pulse absolute inline-flex h-full w-full rounded-full bg-highlight" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-highlight" />
+                    <span className="animate-dot-pulse bg-highlight absolute inline-flex h-full w-full rounded-full" />
+                    <span className="bg-highlight relative inline-flex h-1.5 w-1.5 rounded-full" />
                   </span>
                 </Link>
 
                 {/* Admin */}
                 {isAdminUser ? (
                   <Link
-                    className="ml-1 flex items-center gap-1.5 rounded-md bg-accent/15 px-3 py-1 text-xs font-semibold text-accent-light transition-colors hover:bg-accent/25"
+                    className="bg-accent/15 text-accent-light hover:bg-accent/25 ml-1 flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-colors"
                     href="/admin"
                   >
                     <Shield size={12} />
@@ -440,7 +487,7 @@ export function Navbar() {
                 ) : null}
               </div>
 
-              <span className="text-[11px] font-medium tracking-wide text-secondary/20">
+              <span className="text-secondary/20 text-[11px] font-medium tracking-wide">
                 Premium Tech Solutions
               </span>
             </nav>

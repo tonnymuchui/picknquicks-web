@@ -1,0 +1,27 @@
+import z from "zod";
+
+export const productSchema = z.object({
+  name: z.string().min(3).max(255),
+  slug: z.string().min(3).max(150).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  sku: z.string().min(2).max(100),
+  description: z.string().max(2000).optional().or(z.literal('')),
+  shortDescription: z.string().max(500).optional().or(z.literal('')),
+  price: z.number().min(0.01),
+  salePrice: z.number().min(0.01).optional().or(z.literal(0)),
+  costPrice: z.number().min(0.01).optional().or(z.literal(0)),
+  taxRate: z.number().min(0).max(100).optional().or(z.literal(0)),
+  categoryId: z.string().uuid(),
+  brandId: z.string().uuid().optional().or(z.literal('')),
+  stockQuantity: z.number().min(0).optional().or(z.literal(0)),
+  lowStockThreshold: z.number().min(1).optional().or(z.literal(10)),
+  weightGrams: z.number().min(0).optional().or(z.literal(0)),
+  dimensions: z.string().max(50).optional().or(z.literal('')),
+  active: z.boolean(),
+  featured: z.boolean(),
+  isDigital: z.boolean(),
+  requiresShipping: z.boolean(),
+  displayOrder: z.number().min(0).optional().or(z.literal(0)),
+  metaTitle: z.string().max(128).optional().or(z.literal('')),
+  metaDescription: z.string().max(255).optional().or(z.literal('')),
+  metaKeywords: z.string().max(255).optional().or(z.literal('')),
+});

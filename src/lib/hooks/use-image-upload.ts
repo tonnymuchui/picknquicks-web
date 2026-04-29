@@ -30,6 +30,7 @@ export function useImageUpload<T>(config: ImageUploadConfig) {
         return data.data!;
       },
       onSuccess: (_, variables) => {
+        // Invalidate both detail and all queries
         queryClient.invalidateQueries({ queryKey: config.queryKeys.detail(variables.id) });
         queryClient.invalidateQueries({ queryKey: config.queryKeys.all });
         toast.success(`${imageType} uploaded successfully`);
