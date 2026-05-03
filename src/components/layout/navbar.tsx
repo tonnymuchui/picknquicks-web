@@ -22,7 +22,9 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { UserMenu } from '@/components/auth/user-menu';
+import { CartDrawer } from '@/components/cart/cart-drawer';
 import { useAuth } from '@/lib/auth/hooks';
+import { useCart } from '@/lib/cart/cart.queries';
 import { useCategories } from '@/lib/category/categories.queries';
 import { resolveMediaUrl } from '@/lib/utils/media';
 import { UserRole } from '@/types/auth';
@@ -43,27 +45,23 @@ const PROMO_MESSAGES = [
 export function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { data: categoriesData } = useCategories({});
+  const { data: cart, error: _cartError } = useCart();
   const navCategories = (categoriesData?.content ?? []).filter(
     (cat: Category) => cat.active && cat.level === 0
   );
   const pathname = usePathname();
-  const cart = null as unknown as { totalItems?: number } | null;
 
-  const [mounted, setMounted] = useState(false);
+  const mounted = true;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isPromoVisible, setIsPromoVisible] = useState(true);
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const megaMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 40);
@@ -193,10 +191,10 @@ export function Navbar() {
                   <Heart size={20} />
                 </Link>
 
-                <Link
+                <button
                   aria-label="Cart"
                   className="text-secondary/50 hover:bg-primary-light/20 hover:text-secondary relative rounded-lg p-2 transition-colors"
-                  href="/cart"
+                  onClick={() => setIsCartOpen(true)}
                 >
                   <ShoppingBag size={20} />
                   {cart?.totalItems && cart.totalItems > 0 ? (
@@ -204,7 +202,7 @@ export function Navbar() {
                       {cart.totalItems > 99 ? '99+' : cart.totalItems}
                     </span>
                   ) : null}
-                </Link>
+                </button>
 
                 {mounted && isAuthenticated && user ? (
                   <Link
@@ -263,10 +261,10 @@ export function Navbar() {
                 >
                   <Search size={20} />
                 </button>
-                <Link
+                <button
                   aria-label="Cart"
                   className="text-secondary/60 hover:text-secondary relative rounded-lg p-2"
-                  href="/cart"
+                  onClick={() => setIsCartOpen(true)}
                 >
                   <ShoppingBag size={20} />
                   {cart?.totalItems && cart.totalItems > 0 ? (
@@ -274,7 +272,7 @@ export function Navbar() {
                       {cart.totalItems > 99 ? '99+' : cart.totalItems}
                     </span>
                   ) : null}
-                </Link>
+                </button>
                 {!mounted || isLoading ? (
                   <div className="text-secondary/60 rounded-lg p-2">
                     <User className="animate-pulse" size={20} />
@@ -498,6 +496,7 @@ export function Navbar() {
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
 }
