@@ -1,9 +1,10 @@
 'use client';
 
-import { ProductCard } from '@/components/shop/product-card';
-import { useNewArrivals } from '@/lib/product/products.queries';
 import { Loader2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+
+import { ProductCard } from '@/components/shop/product-card';
+import { useNewArrivals } from '@/lib/product/products.queries';
 
 export function NewArrivals() {
   const { data: productsData, isLoading } = useNewArrivals({ page: 0, size: 8 });
@@ -29,8 +30,8 @@ export function NewArrivals() {
             <h2 className="text-3xl font-bold text-gray-900">New Arrivals</h2>
           </div>
           <Link
-            href="/products?sort=createdAt-DESC"
             className="text-blue-600 hover:text-blue-700 font-medium"
+            href="/products?sort=createdAt-DESC"
           >
             View all →
           </Link>
