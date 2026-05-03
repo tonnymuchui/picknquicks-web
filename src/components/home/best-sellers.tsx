@@ -1,9 +1,10 @@
 'use client';
 
-import { ProductCard } from '@/components/shop/product-card';
-import { useBestSellers } from '@/lib/product/products.queries';
 import { Loader2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+
+import { ProductCard } from '@/components/shop/product-card';
+import { useBestSellers } from '@/lib/product/products.queries';
 
 export function BestSellers() {
   const { data: productsData, isLoading } = useBestSellers({ page: 0, size: 8 });
@@ -29,8 +30,8 @@ export function BestSellers() {
             <h2 className="text-3xl font-bold text-gray-900">Best Sellers</h2>
           </div>
           <Link
-            href="/products?sort=saleCount-DESC"
             className="text-blue-600 hover:text-blue-700 font-medium"
+            href="/products?sort=saleCount-DESC"
           >
             View all →
           </Link>

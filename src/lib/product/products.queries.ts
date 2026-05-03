@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { apiClient } from '@/lib/api/client';
+import { publicApiClient } from '@/lib/api/client';
 
 import type { ApiResponse, PaginatedResponse } from '@/types/common';
 import type { Product, ProductFilters } from '@/types/product';
@@ -29,9 +29,12 @@ export function useProducts(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: productKeys.list(filters),
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>('/products', {
-        params: filters,
-      });
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+        '/products',
+        {
+          params: filters,
+        }
+      );
       return data.data!;
     },
     staleTime: 3 * 60 * 1000,
@@ -42,7 +45,7 @@ export function useProduct(id: string) {
   return useQuery({
     queryKey: productKeys.detail(id),
     queryFn: async (): Promise<Product> => {
-      const { data } = await apiClient.get<ApiResponse<Product>>(`/products/${id}`);
+      const { data } = await publicApiClient.get<ApiResponse<Product>>(`/products/${id}`);
       return data.data!;
     },
     enabled: !!id,
@@ -55,7 +58,7 @@ export function useProductBySlug(slug: string) {
   return useQuery({
     queryKey: productKeys.bySlug(slug),
     queryFn: async (): Promise<Product> => {
-      const { data } = await apiClient.get<ApiResponse<Product>>(`/products/slug/${slug}`);
+      const { data } = await publicApiClient.get<ApiResponse<Product>>(`/products/slug/${slug}`);
       return data.data!;
     },
     enabled: !!slug,
@@ -66,7 +69,7 @@ export function useActiveProducts(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: [...productKeys.active(), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         '/products/active',
         {
           params: filters,
@@ -82,7 +85,7 @@ export function useFeaturedProducts() {
   return useQuery({
     queryKey: productKeys.featured(),
     queryFn: async (): Promise<Product[]> => {
-      const { data } = await apiClient.get<ApiResponse<Product[]>>('/products/featured');
+      const { data } = await publicApiClient.get<ApiResponse<Product[]>>('/products/featured');
       return data.data!;
     },
     staleTime: 10 * 60 * 1000,
@@ -93,7 +96,7 @@ export function useOnSaleProducts(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: [...productKeys.onSale(), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         '/products/on-sale',
         {
           params: filters,
@@ -109,7 +112,7 @@ export function useBestSellers(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: [...productKeys.bestSellers(), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         '/products/best-sellers',
         {
           params: filters,
@@ -125,7 +128,7 @@ export function useNewArrivals(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: [...productKeys.newArrivals(), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         '/products/new-arrivals',
         {
           params: filters,
@@ -141,7 +144,7 @@ export function useTopRated(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: [...productKeys.topRated(), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         '/products/top-rated',
         {
           params: filters,
@@ -157,7 +160,7 @@ export function useProductsByCategory(categoryId: string, filters: ProductFilter
   return useQuery({
     queryKey: [...productKeys.byCategory(categoryId), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         `/products/category/${categoryId}`,
         { params: filters }
       );
@@ -171,7 +174,7 @@ export function useProductsByBrand(brandId: string, filters: ProductFilters = {}
   return useQuery({
     queryKey: [...productKeys.byBrand(brandId), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         `/products/brand/${brandId}`,
         { params: filters }
       );
@@ -185,7 +188,7 @@ export function useSearchProducts(query: string, filters: ProductFilters = {}) {
   return useQuery({
     queryKey: [...productKeys.search(query), filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         '/products/search',
         {
           params: { query, ...filters },
@@ -201,7 +204,7 @@ export function useFilterProducts(filters: ProductFilters) {
   return useQuery({
     queryKey: [...productKeys.all, 'filter', filters],
     queryFn: async (): Promise<PaginatedResponse<Product>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await publicApiClient.get<ApiResponse<PaginatedResponse<Product>>>(
         '/products/filter',
         {
           params: filters,
@@ -216,7 +219,9 @@ export function useLowStockProducts() {
   return useQuery({
     queryKey: productKeys.lowStock(),
     queryFn: async (): Promise<Product[]> => {
-      const { data } = await apiClient.get<ApiResponse<Product[]>>('/products/inventory/low-stock');
+      const { data } = await publicApiClient.get<ApiResponse<Product[]>>(
+        '/products/inventory/low-stock'
+      );
       return data.data!;
     },
   });
@@ -226,7 +231,7 @@ export function useOutOfStockProducts() {
   return useQuery({
     queryKey: productKeys.outOfStock(),
     queryFn: async (): Promise<Product[]> => {
-      const { data } = await apiClient.get<ApiResponse<Product[]>>(
+      const { data } = await publicApiClient.get<ApiResponse<Product[]>>(
         '/products/inventory/out-of-stock'
       );
       return data.data!;

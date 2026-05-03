@@ -53,7 +53,6 @@ export interface UserFilters {
   enabled?: boolean;
 }
 
-// Dashboard Types
 export interface MetricData {
   value: number | string;
   label: string;

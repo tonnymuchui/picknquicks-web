@@ -1,8 +1,5 @@
 'use client';
 
-import { use, useState } from 'react';
-import { ProductImageGallery } from '@/components/shop/product-image-gallery';
-import { ProductCard } from '@/components/shop/product-card';
 import {
   Loader2,
   ShoppingCart,
@@ -19,6 +16,9 @@ import {
   Plus,
 } from 'lucide-react';
 import Link from 'next/link';
+import { use, useState } from 'react';
+
+import { ProductImageGallery } from '@/components/shop/product-image-gallery';
 import { useProductBySlug } from '@/lib/product/products.queries';
 import { formatPriceKsh } from '@/lib/utils/currency';
 
@@ -43,8 +43,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="mb-2 text-2xl font-bold text-gray-900">Product Not Found</h1>
-          <p className="mb-4 text-gray-600">The product you're looking for doesn't exist.</p>
-          <Link href="/products" className="text-blue-600 hover:text-blue-700">
+          <p className="mb-4 text-gray-600">
+            The product you&apos;re looking for doesn&apos;t exist.
+          </p>
+          <Link className="text-blue-600 hover:text-blue-700" href="/products">
             Browse all products
           </Link>
         </div>
@@ -63,28 +65,26 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     }
   };
 
-  const handleAddToCart = () => {
-    console.log('Add to cart:', { productId: product.id, quantity });
-  };
+  const handleAddToCart = () => {};
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
           <nav className="flex items-center gap-2 text-sm text-gray-600">
-            <Link href="/" className="hover:text-blue-600">
+            <Link className="hover:text-blue-600" href="/">
               Home
             </Link>
             <span>/</span>
-            <Link href="/products" className="hover:text-blue-600">
+            <Link className="hover:text-blue-600" href="/products">
               Products
             </Link>
-            {product.categoryName && (
+            {product.categoryName ? (
               <>
                 <span>/</span>
                 <span className="text-gray-900">{product.categoryName}</span>
               </>
-            )}
+            ) : null}
           </nav>
         </div>
       </div>
@@ -96,30 +96,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           </div>
 
           <div className="space-y-6">
-            {product.brandName && (
+            {product.brandName ? (
               <Link
-                href={`/brands/${product.brandId}`}
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                href={`/brands/${product.brandId}`}
               >
                 {product.brandName}
               </Link>
-            )}
+            ) : null}
 
             <div>
               <h1 className="mb-3 text-3xl font-bold text-gray-900 lg:text-4xl">{product.name}</h1>
 
-              {product.averageRating && product.averageRating > 0 && (
+              {product.averageRating && product.averageRating > 0 ? (
                 <div className="flex items-center gap-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        size={20}
                         className={
                           i < Math.round(product.averageRating!)
                             ? 'fill-yellow-400 text-yellow-400'
                             : 'text-gray-300'
                         }
+                        size={20}
                       />
                     ))}
                   </div>
@@ -127,14 +127,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                     {product.averageRating.toFixed(1)} ({product.reviewCount} reviews)
                   </span>
                 </div>
-              )}
+              ) : null}
             </div>
 
             <div className="flex items-baseline gap-3">
               <div className="text-4xl font-bold text-gray-900">
                 {formatPriceKsh(product.effectivePrice)}
               </div>
-              {product.salePrice && product.salePrice < product.price && (
+              {product.salePrice && product.salePrice < product.price ? (
                 <>
                   <div className="text-2xl text-gray-500 line-through">
                     {formatPriceKsh(product.price)}
@@ -143,7 +143,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                     Save {discountPercentage}%
                   </div>
                 </>
-              )}
+              ) : null}
             </div>
 
             <div
@@ -177,23 +177,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               )}
             </div>
 
-            {product.shortDescription && (
+            {product.shortDescription ? (
               <p className="text-lg leading-relaxed text-gray-600">{product.shortDescription}</p>
-            )}
+            ) : null}
 
-            {product.inStock && (
+            {product.inStock ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <label className="text-sm font-medium text-gray-700">Quantity:</label>
                   <div className="flex items-center rounded-lg border border-gray-300">
                     <button
-                      onClick={() => handleQuantityChange(-1)}
-                      disabled={quantity <= 1}
                       className="p-3 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={quantity <= 1}
+                      onClick={() => handleQuantityChange(-1)}
                     >
                       <Minus size={18} />
                     </button>
                     <input
+                      className="w-20 border-x border-gray-300 py-3 text-center focus:outline-none"
                       type="number"
                       value={quantity}
                       onChange={(e) => {
@@ -202,12 +203,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                           setQuantity(val);
                         }
                       }}
-                      className="w-20 border-x border-gray-300 py-3 text-center focus:outline-none"
                     />
                     <button
-                      onClick={() => handleQuantityChange(1)}
-                      disabled={quantity >= product.stockQuantity}
                       className="p-3 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={quantity >= product.stockQuantity}
+                      onClick={() => handleQuantityChange(1)}
                     >
                       <Plus size={18} />
                     </button>
@@ -217,8 +217,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
                 <div className="flex gap-3">
                   <button
-                    onClick={handleAddToCart}
                     className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-4 text-lg font-semibold text-white transition-colors hover:bg-blue-700"
+                    onClick={handleAddToCart}
                   >
                     <ShoppingCart size={22} />
                     Add to Cart
@@ -235,12 +235,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   Buy Now
                 </button>
               </div>
-            )}
+            ) : null}
 
             <div className="grid grid-cols-1 gap-4 border-t border-gray-200 pt-6 md:grid-cols-3">
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-blue-100 p-2">
-                  <Truck size={20} className="text-blue-600" />
+                  <Truck className="text-blue-600" size={20} />
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-gray-900">Free Delivery</div>
@@ -250,7 +250,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-green-100 p-2">
-                  <Shield size={20} className="text-green-600" />
+                  <Shield className="text-green-600" size={20} />
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-gray-900">Warranty</div>
@@ -260,7 +260,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-orange-100 p-2">
-                  <RotateCcw size={20} className="text-orange-600" />
+                  <RotateCcw className="text-orange-600" size={20} />
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-gray-900">Easy Returns</div>
@@ -274,42 +274,42 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 <span className="text-gray-600">SKU:</span>
                 <span className="font-medium text-gray-900">{product.sku}</span>
               </div>
-              {product.categoryName && (
+              {product.categoryName ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Category:</span>
                   <Link
-                    href={`/categories/${product.categoryId}`}
                     className="font-medium text-blue-600 hover:text-blue-700"
+                    href={`/categories/${product.categoryId}`}
                   >
                     {product.categoryName}
                   </Link>
                 </div>
-              )}
-              {product.brandName && (
+              ) : null}
+              {product.brandName ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Brand:</span>
                   <Link
-                    href={`/brands/${product.brandId}`}
                     className="font-medium text-blue-600 hover:text-blue-700"
+                    href={`/brands/${product.brandId}`}
                   >
                     {product.brandName}
                   </Link>
                 </div>
-              )}
-              {product.weightGrams && (
+              ) : null}
+              {product.weightGrams ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Weight:</span>
                   <span className="font-medium text-gray-900">
                     {(product.weightGrams / 1000).toFixed(2)} kg
                   </span>
                 </div>
-              )}
-              {product.dimensions && (
+              ) : null}
+              {product.dimensions ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Dimensions:</span>
                   <span className="font-medium text-gray-900">{product.dimensions}</span>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -318,32 +318,32 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           <div className="border-b border-gray-200">
             <div className="flex">
               <button
-                onClick={() => setSelectedTab('description')}
                 className={`px-6 py-4 font-medium transition-colors ${
                   selectedTab === 'description'
                     ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
+                onClick={() => setSelectedTab('description')}
               >
                 Description
               </button>
               <button
-                onClick={() => setSelectedTab('specs')}
                 className={`px-6 py-4 font-medium transition-colors ${
                   selectedTab === 'specs'
                     ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
+                onClick={() => setSelectedTab('specs')}
               >
                 Specifications
               </button>
               <button
-                onClick={() => setSelectedTab('reviews')}
                 className={`px-6 py-4 font-medium transition-colors ${
                   selectedTab === 'reviews'
                     ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
+                onClick={() => setSelectedTab('reviews')}
               >
                 Reviews ({product.reviewCount})
               </button>
@@ -351,7 +351,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           </div>
 
           <div className="p-6">
-            {selectedTab === 'description' && (
+            {selectedTab === 'description' ? (
               <div className="prose max-w-none">
                 {product.description ? (
                   <div className="whitespace-pre-line leading-relaxed text-gray-700">
@@ -361,44 +361,44 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   <p className="text-gray-500">No description available.</p>
                 )}
               </div>
-            )}
+            ) : null}
 
-            {selectedTab === 'specs' && (
+            {selectedTab === 'specs' ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-3">
                   <div className="flex justify-between border-b border-gray-200 py-2">
                     <span className="font-medium text-gray-600">SKU</span>
                     <span className="text-gray-900">{product.sku}</span>
                   </div>
-                  {product.brandName && (
+                  {product.brandName ? (
                     <div className="flex justify-between border-b border-gray-200 py-2">
                       <span className="font-medium text-gray-600">Brand</span>
                       <span className="text-gray-900">{product.brandName}</span>
                     </div>
-                  )}
-                  {product.categoryName && (
+                  ) : null}
+                  {product.categoryName ? (
                     <div className="flex justify-between border-b border-gray-200 py-2">
                       <span className="font-medium text-gray-600">Category</span>
                       <span className="text-gray-900">{product.categoryName}</span>
                     </div>
-                  )}
-                  {product.weightGrams && (
+                  ) : null}
+                  {product.weightGrams ? (
                     <div className="flex justify-between border-b border-gray-200 py-2">
                       <span className="font-medium text-gray-600">Weight</span>
                       <span className="text-gray-900">
                         {(product.weightGrams / 1000).toFixed(2)} kg
                       </span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="space-y-3">
-                  {product.dimensions && (
+                  {product.dimensions ? (
                     <div className="flex justify-between border-b border-gray-200 py-2">
                       <span className="font-medium text-gray-600">Dimensions</span>
                       <span className="text-gray-900">{product.dimensions}</span>
                     </div>
-                  )}
+                  ) : null}
                   <div className="flex justify-between border-b border-gray-200 py-2">
                     <span className="font-medium text-gray-600">Product Type</span>
                     <span className="text-gray-900">
@@ -413,9 +413,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
 
-            {selectedTab === 'reviews' && (
+            {selectedTab === 'reviews' ? (
               <div className="space-y-6">
                 {product.reviewCount > 0 ? (
                   <div className="rounded-lg bg-gray-50 p-6">
@@ -428,12 +428,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              size={20}
                               className={
                                 i < Math.round(product.averageRating!)
                                   ? 'fill-yellow-400 text-yellow-400'
                                   : 'text-gray-300'
                               }
+                              size={20}
                             />
                           ))}
                         </div>
@@ -462,7 +462,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   </div>
                 ) : (
                   <div className="py-12 text-center">
-                    <Package size={48} className="mx-auto mb-4 text-gray-300" />
+                    <Package className="mx-auto mb-4 text-gray-300" size={48} />
                     <p className="mb-4 text-gray-600">No reviews yet</p>
                     <button className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700">
                       Be the first to review
@@ -470,7 +470,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 

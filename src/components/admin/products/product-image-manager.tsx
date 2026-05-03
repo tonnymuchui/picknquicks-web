@@ -27,6 +27,7 @@ export function ProductImageManager({ productId, images = [] }: ProductImageMana
   );
 
   const sortedImages = [...displayImages].sort((a, b) => a.displayOrder - b.displayOrder);
+  const isEmpty = displayImages.length === 0;
 
   const handleUpload = useCallback(
     async (file: File, _isPrimary: boolean = false) => {
@@ -62,7 +63,7 @@ export function ProductImageManager({ productId, images = [] }: ProductImageMana
         </span>
       </div>
 
-      {displayImages.length === 0 && (
+      {isEmpty ? (
         <div className="flex items-start gap-3 rounded-md border border-yellow-200 bg-yellow-50 p-4">
           <AlertCircle className="mt-0.5 shrink-0 text-yellow-600" size={18} />
           <div>
@@ -72,7 +73,7 @@ export function ProductImageManager({ productId, images = [] }: ProductImageMana
             </p>
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {sortedImages.map((image) => (
@@ -80,6 +81,7 @@ export function ProductImageManager({ productId, images = [] }: ProductImageMana
             <div className="aspect-square overflow-hidden rounded-lg border-2 border-gray-200 bg-white transition-colors hover:border-blue-400">
               <div className="relative h-full w-full">
                 <Image
+                  unoptimized
                   alt={image.altText || 'Product image'}
                   className="h-full w-full object-contain p-1"
                   height={200}
@@ -89,7 +91,6 @@ export function ProductImageManager({ productId, images = [] }: ProductImageMana
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                   }}
-                  unoptimized
                 />
                 <div className="absolute inset-0 hidden items-center justify-center bg-gray-100">
                   <ImageIcon className="text-gray-300" size={40} />
@@ -107,8 +108,8 @@ export function ProductImageManager({ productId, images = [] }: ProductImageMana
             <button
               className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white opacity-0 shadow-md transition-all hover:bg-red-600 hover:shadow-lg disabled:opacity-50 group-hover:opacity-100"
               disabled={removeImage.isPending}
-              onClick={() => handleRemove(image.id)}
               title="Delete image"
+              onClick={() => handleRemove(image.id)}
             >
               {removeImage.isPending ? (
                 <Loader2 className="animate-spin" size={16} />

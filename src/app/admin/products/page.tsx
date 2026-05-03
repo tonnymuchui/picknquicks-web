@@ -1,18 +1,20 @@
 'use client';
 
+import { Plus, Edit, Trash2, Loader2, Search, Package, Star, AlertTriangle } from 'lucide-react';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { ProtectedRoute } from '@/components/auth/protected-route';
-import { UserRole } from '@/types/auth';
+
 import { ProductFormModal } from '@/components/admin/products/product-form-modal';
 import { ProductImageManager } from '@/components/admin/products/product-image-manager';
 import { StockUpdateModal } from '@/components/admin/products/stock-update-modal';
-import { Plus, Edit, Trash2, Loader2, Search, Package, Star, AlertTriangle } from 'lucide-react';
-import type { Product } from '@/types/product';
-import Image from 'next/image';
+import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useDeleteProduct } from '@/lib/product/products.mutations';
 import { useProducts } from '@/lib/product/products.queries';
 import { formatPriceKsh } from '@/lib/utils/currency';
 import { resolveMediaUrl } from '@/lib/utils/media';
+import { UserRole } from '@/types/auth';
+
+import type { Product } from '@/types/product';
 
 export default function AdminProductsPage() {
   const [page, setPage] = useState(0);
@@ -24,16 +26,18 @@ export default function AdminProductsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
+  const totalPages = productsData?.totalPages ?? 0;
+  const hasMultiplePages = totalPages > 1;
 
-  // Sync selectedProduct with updated data from productsData
   useEffect(() => {
     if (selectedProduct && productsData?.content) {
       const updatedProduct = productsData.content.find((p) => p.id === selectedProduct.id);
-      if (updatedProduct) {
+      if (updatedProduct && JSON.stringify(updatedProduct) !== JSON.stringify(selectedProduct)) {
         setSelectedProduct(updatedProduct);
       }
     }
-  }, [productsData, selectedProduct]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productsData]);
 
   const handleCreate = () => {
     setEditingProduct(undefined);
@@ -93,8 +97,8 @@ export default function AdminProductsPage() {
               </p>
             </div>
             <button
-              onClick={handleCreate}
               className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              onClick={handleCreate}
             >
               <Plus size={20} />
               Create Product
@@ -115,11 +119,11 @@ export default function AdminProductsPage() {
                       size={20}
                     />
                     <input
+                      className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Search products..."
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search products..."
-                      className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -128,25 +132,28 @@ export default function AdminProductsPage() {
                   {productsData?.content.map((product) => (
                     <div
                       key={product.id}
-                      onClick={() => setSelectedProduct(product)}
                       className={`cursor-pointer p-4 transition-colors hover:bg-gray-50 ${
                         selectedProduct?.id === product.id ? 'bg-blue-50' : ''
                       }`}
+                      onClick={() => setSelectedProduct(product)}
                     >
                       <div className="flex items-start gap-4">
-                        {resolveMediaUrl(product.primaryImageUrl) ? (
-                          <Image
-                            src={resolveMediaUrl(product.primaryImageUrl) || '/favicon.ico'}
-                            alt={product.name}
-                            width={80}
-                            height={80}
-                            className="h-20 w-20 rounded-lg border border-gray-200 bg-white object-contain"
-                          />
-                        ) : (
-                          <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gray-100">
-                            <Package size={32} className="text-gray-400" />
-                          </div>
-                        )}
+                        {(() => {
+                          const imageUrl = resolveMediaUrl(product.primaryImageUrl);
+                          return imageUrl ? (
+                            <Image
+                              alt={product.name}
+                              className="h-20 w-20 rounded-lg border border-gray-200 bg-white object-contain"
+                              height={80}
+                              src={imageUrl}
+                              width={80}
+                            />
+                          ) : (
+                            <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gray-100">
+                              <Package className="text-gray-400" size={32} />
+                            </div>
+                          );
+                        })()}
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
@@ -158,103 +165,103 @@ export default function AdminProductsPage() {
                             </div>
 
                             <div className="flex flex-col items-end gap-1">
-                              {getStockBadge(product)}
-                              {product.featured && (
+                              {getStockBadge(product) || null}
+                              {product.featured ? (
                                 <span className="flex items-center gap-1 rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700">
-                                  <Star size={12} className="fill-yellow-700" />
+                                  <Star className="fill-yellow-700" size={12} />
                                   Featured
                                 </span>
-                              )}
-                              {!product.active && (
+                              ) : null}
+                              {!product.active ? (
                                 <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                                   Inactive
                                 </span>
-                              )}
+                              ) : null}
                             </div>
                           </div>
 
                           <div className="mt-2 flex items-center gap-4 text-sm">
                             <div className="font-semibold text-gray-900">
                               {formatPriceKsh(product.effectivePrice)}
-                              {product.salePrice && (
+                              {product.salePrice ? (
                                 <span className="ml-2 font-normal text-gray-500 line-through">
                                   {formatPriceKsh(product.price)}
                                 </span>
-                              )}
+                              ) : null}
                             </div>
                             <div className="text-gray-600">Stock: {product.stockQuantity}</div>
-                            {product.categoryName && (
+                            {product.categoryName ? (
                               <div className="text-gray-500">{product.categoryName}</div>
-                            )}
-                            {product.brandName && (
+                            ) : null}
+                            {product.brandName ? (
                               <div className="text-gray-500">{product.brandName}</div>
-                            )}
+                            ) : null}
                           </div>
 
-                          {product.averageRating && product.averageRating > 0 && (
+                          {product.averageRating && product.averageRating > 0 ? (
                             <div className="mt-1 flex items-center gap-1 text-sm text-gray-600">
-                              <Star size={14} className="fill-yellow-500 text-yellow-500" />
+                              <Star className="fill-yellow-500 text-yellow-500" size={14} />
                               <span>{product.averageRating.toFixed(1)}</span>
                               <span className="text-gray-400">({product.reviewCount})</span>
                             </div>
-                          )}
+                          ) : null}
                         </div>
 
                         <div className="flex gap-2">
                           <button
+                            className="rounded-md p-2 text-blue-600 hover:bg-blue-50"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEdit(product);
                             }}
-                            className="rounded-md p-2 text-blue-600 hover:bg-blue-50"
                           >
                             <Edit size={18} />
                           </button>
                           <button
+                            className="rounded-md p-2 text-red-600 hover:bg-red-50"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(product);
                             }}
-                            className="rounded-md p-2 text-red-600 hover:bg-red-50"
                           >
                             <Trash2 size={18} />
                           </button>
                         </div>
                       </div>
 
-                      {product.lowStock && (
+                      {product.lowStock ? (
                         <div className="mt-2 flex items-center gap-2 text-sm text-orange-600">
                           <AlertTriangle size={16} />
                           <span>Low stock alert - only {product.stockQuantity} remaining</span>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   ))}
                 </div>
 
-                {productsData && productsData.totalPages > 1 && (
+                {hasMultiplePages ? (
                   <div className="flex items-center justify-between border-t border-gray-200 p-4">
                     <div className="text-sm text-gray-700">
-                      Page {page + 1} of {productsData.totalPages}
+                      Page {page + 1} of {totalPages}
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setPage((p) => Math.max(0, p - 1))}
-                        disabled={page === 0}
                         className="rounded-md border border-gray-300 px-3 py-1 text-sm disabled:opacity-50"
+                        disabled={page === 0}
+                        onClick={() => setPage((p) => Math.max(0, p - 1))}
                       >
                         Previous
                       </button>
                       <button
-                        onClick={() => setPage((p) => Math.min(productsData.totalPages - 1, p + 1))}
-                        disabled={page === productsData.totalPages - 1}
                         className="rounded-md border border-gray-300 px-3 py-1 text-sm disabled:opacity-50"
+                        disabled={page === totalPages - 1}
+                        onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                       >
                         Next
                       </button>
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
 
               <div className="rounded-lg bg-white p-6 shadow lg:col-span-1">
@@ -262,20 +269,22 @@ export default function AdminProductsPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="mb-2 text-xl font-bold text-gray-900">
-                        {selectedProduct.name}
+                        {selectedProduct.name || 'Product'}
                       </h2>
-                      <p className="text-sm text-gray-600">{selectedProduct.shortDescription}</p>
+                      <p className="text-sm text-gray-600">
+                        {selectedProduct.shortDescription || 'No description'}
+                      </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
                       <div>
                         <label className="text-sm font-medium text-gray-700">SKU</label>
-                        <p className="text-gray-900">{selectedProduct.sku}</p>
+                        <p className="text-gray-900">{selectedProduct.sku || 'N/A'}</p>
                       </div>
 
                       <div>
                         <label className="text-sm font-medium text-gray-700">Category</label>
-                        <p className="text-gray-900">{selectedProduct.categoryName}</p>
+                        <p className="text-gray-900">{selectedProduct.categoryName || 'N/A'}</p>
                       </div>
 
                       <div>
@@ -293,27 +302,27 @@ export default function AdminProductsPage() {
                         <p className="text-gray-900">{formatPriceKsh(selectedProduct.price)}</p>
                       </div>
 
-                      {selectedProduct.salePrice && (
+                      {selectedProduct.salePrice ? (
                         <div>
                           <label className="text-sm font-medium text-gray-700">Sale Price</label>
                           <p className="font-semibold text-green-600">
                             {formatPriceKsh(selectedProduct.salePrice)}
                           </p>
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
                     <button
-                      onClick={() => handleStockUpdate(selectedProduct)}
                       className="flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                      onClick={() => handleStockUpdate(selectedProduct)}
                     >
                       <Package size={18} />
                       Update Stock
                     </button>
 
                     <ProductImageManager
-                      productId={selectedProduct.id}
                       images={selectedProduct.images}
+                      productId={selectedProduct.id}
                     />
                   </div>
                 ) : (
@@ -329,17 +338,17 @@ export default function AdminProductsPage() {
 
       <ProductFormModal
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
         product={editingProduct}
+        onClose={() => setIsFormOpen(false)}
       />
 
-      {selectedProduct && (
+      {selectedProduct !== null ? (
         <StockUpdateModal
           isOpen={isStockModalOpen}
-          onClose={() => setIsStockModalOpen(false)}
           product={selectedProduct}
+          onClose={() => setIsStockModalOpen(false)}
         />
-      )}
+      ) : null}
     </ProtectedRoute>
   );
 }

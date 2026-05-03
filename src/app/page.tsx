@@ -1,8 +1,9 @@
+import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+
+import { BestSellers } from '@/components/home/best-sellers';
 import { FeaturedProducts } from '@/components/home/featured-products';
 import { NewArrivals } from '@/components/home/new-arrivals';
-import { BestSellers } from '@/components/home/best-sellers';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -18,15 +19,15 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                href="/products"
                 className="px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center gap-2 text-lg"
+                href="/products"
               >
                 Shop Now
                 <ArrowRight size={20} />
               </Link>
               <Link
-                href="/brands"
                 className="px-8 py-4 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors text-lg"
+                href="/brands"
               >
                 Explore Brands
               </Link>
@@ -46,8 +47,8 @@ export default function HomePage() {
             Join thousands of happy customers today
           </p>
           <Link
-            href="/products"
             className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors inline-flex items-center gap-2 text-lg"
+            href="/products"
           >
             Browse All Products
             <ArrowRight size={20} />

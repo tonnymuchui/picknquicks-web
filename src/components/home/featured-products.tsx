@@ -1,9 +1,10 @@
 'use client';
 
-import { ProductCard } from '@/components/shop/product-card';
-import { useFeaturedProducts } from '@/lib/product/products.queries';
 import { Loader2, Star } from 'lucide-react';
 import Link from 'next/link';
+
+import { ProductCard } from '@/components/shop/product-card';
+import { useFeaturedProducts } from '@/lib/product/products.queries';
 
 export function FeaturedProducts() {
   const { data: products, isLoading } = useFeaturedProducts();
@@ -29,8 +30,8 @@ export function FeaturedProducts() {
             <h2 className="text-3xl font-bold text-gray-900">Featured Products</h2>
           </div>
           <Link
-            href="/products?featured=true"
             className="text-blue-600 hover:text-blue-700 font-medium"
+            href="/products?featured=true"
           >
             View all →
           </Link>
