@@ -1,11 +1,14 @@
 'use client';
 
+import { Loader2, Grid3x3, List } from 'lucide-react';
 import { useState } from 'react';
+
 import { ProductCard } from '@/components/shop/product-card';
 import { ProductFilters } from '@/components/shop/product-filters';
-import { Loader2, Grid3x3, List } from 'lucide-react';
-import type { ProductFilters as Filters } from '@/types/product';
 import { useActiveProducts } from '@/lib/product/products.queries';
+
+import type { ProductFilters as Filters } from '@/types/product';
+
 
 export default function ProductsPage() {
   const [page, setPage] = useState(0);
@@ -53,12 +56,12 @@ export default function ProductsPage() {
 
           <div className="flex items-center gap-4">
             <select
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={`${filters.sortBy}-${filters.sortDirection}`}
               onChange={(e) => {
                 const [sortBy, sortDirection] = e.target.value.split('-');
                 handleFilterChange({ sortBy, sortDirection: sortDirection as 'ASC' | 'DESC' });
               }}
-              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="createdAt-DESC">Newest First</option>
               <option value="createdAt-ASC">Oldest First</option>
@@ -70,14 +73,14 @@ export default function ProductsPage() {
 
             <div className="flex border border-gray-300 rounded-md overflow-hidden">
               <button
-                onClick={() => setView('grid')}
                 className={`p-2 ${view === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                onClick={() => setView('grid')}
               >
                 <Grid3x3 size={20} />
               </button>
               <button
-                onClick={() => setView('list')}
                 className={`p-2 ${view === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                onClick={() => setView('list')}
               >
                 <List size={20} />
               </button>
@@ -103,8 +106,8 @@ export default function ProductsPage() {
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No products found</p>
                 <button
-                  onClick={handleResetFilters}
                   className="mt-4 text-blue-600 hover:text-blue-700"
+                  onClick={handleResetFilters}
                 >
                   Clear filters
                 </button>
@@ -123,12 +126,11 @@ export default function ProductsPage() {
                   ))}
                 </div>
 
-                {productsData && productsData.totalPages > 1 && (
-                  <div className="mt-8 flex items-center justify-center gap-2">
+                {productsData && productsData.totalPages > 1 ? <div className="mt-8 flex items-center justify-center gap-2">
                     <button
-                      onClick={() => handlePageChange(Math.max(0, page - 1))}
-                      disabled={page === 0}
                       className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={page === 0}
+                      onClick={() => handlePageChange(Math.max(0, page - 1))}
                     >
                       Previous
                     </button>
@@ -136,17 +138,17 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-2">
                       {[...Array(Math.min(5, productsData.totalPages))].map((_, i) => {
                         const pageNum = page < 3 ? i : page - 2 + i;
-                        if (pageNum >= productsData.totalPages) return null;
+                        if (pageNum >= productsData.totalPages) {return null;}
 
                         return (
                           <button
                             key={pageNum}
-                            onClick={() => handlePageChange(pageNum)}
                             className={`px-4 py-2 rounded-md ${
                               page === pageNum
                                 ? 'bg-blue-600 text-white'
                                 : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
+                            onClick={() => handlePageChange(pageNum)}
                           >
                             {pageNum + 1}
                           </button>
@@ -155,14 +157,13 @@ export default function ProductsPage() {
                     </div>
 
                     <button
-                      onClick={() => handlePageChange(Math.min(productsData.totalPages - 1, page + 1))}
-                      disabled={page === productsData.totalPages - 1}
                       className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={page === productsData.totalPages - 1}
+                      onClick={() => handlePageChange(Math.min(productsData.totalPages - 1, page + 1))}
                     >
                       Next
                     </button>
-                  </div>
-                )}
+                  </div> : null}
               </>
             )}
           </div>
