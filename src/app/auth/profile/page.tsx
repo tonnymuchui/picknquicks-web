@@ -25,7 +25,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      // Initialize form data when user loads
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
