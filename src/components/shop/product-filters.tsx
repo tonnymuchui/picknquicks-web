@@ -1,8 +1,9 @@
 'use client';
 
+import { X } from 'lucide-react';
+
 import { useActiveBrands } from '@/lib/brand/brands.queries';
 import { useCategories } from '@/lib/category/categories.queries';
-import { X } from 'lucide-react';
 
 interface ProductFiltersProps {
   filters: {
@@ -11,7 +12,7 @@ interface ProductFiltersProps {
     minPrice?: number;
     maxPrice?: number;
   };
-  onChange: (filters: any) => void;
+  onChange: (filters: Partial<ProductFiltersProps['filters']>) => void;
   onReset: () => void;
 }
 
@@ -19,31 +20,31 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
   const { data: categories } = useCategories();
   const { data: brands } = useActiveBrands();
 
-  const hasActiveFilters = filters.categoryId || filters.brandId || filters.minPrice || filters.maxPrice;
+  const hasActiveFilters = Boolean(
+    filters.categoryId || filters.brandId || filters.minPrice || filters.maxPrice
+  );
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-6">
+    <div className="space-y-6 rounded-lg bg-white p-6 shadow">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-        {hasActiveFilters && (
+        {hasActiveFilters ? (
           <button
+            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
             onClick={onReset}
-            className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
           >
             <X size={16} />
             Clear all
           </button>
-        )}
+        ) : null}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Category
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
         <select
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={filters.categoryId || ''}
           onChange={(e) => onChange({ ...filters, categoryId: e.target.value || undefined })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Categories</option>
           {categories?.content.map((category) => (
@@ -55,13 +56,11 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Brand
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Brand</label>
         <select
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={filters.brandId || ''}
           onChange={(e) => onChange({ ...filters, brandId: e.target.value || undefined })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Brands</option>
           {brands?.map((brand) => (
@@ -73,27 +72,31 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Price Range
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Price Range</label>
         <div className="grid grid-cols-2 gap-2">
           <input
-            type="number"
+            className="rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Min"
+            type="number"
             value={filters.minPrice || ''}
             onChange={(e) =>
-              onChange({ ...filters, minPrice: e.target.value ? Number(e.target.value) : undefined })
+              onChange({
+                ...filters,
+                minPrice: e.target.value ? Number(e.target.value) : undefined,
+              })
             }
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
-            type="number"
+            className="rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Max"
+            type="number"
             value={filters.maxPrice || ''}
             onChange={(e) =>
-              onChange({ ...filters, maxPrice: e.target.value ? Number(e.target.value) : undefined })
+              onChange({
+                ...filters,
+                maxPrice: e.target.value ? Number(e.target.value) : undefined,
+              })
             }
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
