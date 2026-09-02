@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, ShoppingBag, ArrowLeft, AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Loader2, LockKeyhole, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 
 import { CartItem } from '@/components/cart/cart-item';
@@ -9,150 +9,148 @@ import { useCart } from '@/lib/cart/cart.queries';
 import { formatPriceKsh } from '@/lib/utils/currency';
 
 export default function CartPage() {
-  const { data: cart, isLoading, error } = useCart();
+  const { data: cart, error, isLoading, refetch } = useCart();
   const clearCart = useClearCart();
-
-  const handleClearCart = () => {
-    if (confirm('Clear all items from cart?')) {
-      clearCart.mutate();
-    }
-  };
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
+      <main className="flex min-h-[65vh] items-center justify-center">
+        <Loader2 aria-label="Loading cart" className="animate-spin" size={28} />
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <AlertCircle className="mx-auto mb-6 text-red-300" size={80} />
-            <h1 className="mb-4 text-3xl font-bold text-gray-900">Unable to Load Cart</h1>
-            <p className="mb-8 text-gray-600">
-              We encountered an error while loading your cart. Please try again later.
-            </p>
-            <Link
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-4 font-semibold text-white transition-colors hover:bg-blue-700"
-              href="/products"
-            >
-              <ArrowLeft size={20} />
-              Continue Shopping
-            </Link>
-          </div>
+      <main className="flex min-h-[65vh] items-center justify-center px-5 text-center">
+        <div className="max-w-md">
+          <AlertCircle aria-hidden="true" className="mx-auto text-black/25" size={48} />
+          <h1 className="mt-5 text-3xl font-medium tracking-[-0.035em]">
+            Your cart could not load
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-black/55">
+            Try again before continuing to checkout.
+          </p>
+          <button
+            className="bg-ink mt-6 min-h-12 px-7 text-sm font-semibold text-white"
+            type="button"
+            onClick={() => refetch()}
+          >
+            Try again
+          </button>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <ShoppingBag className="mx-auto mb-6 text-gray-300" size={80} />
-            <h1 className="mb-4 text-3xl font-bold text-gray-900">Your cart is empty</h1>
-            <p className="mb-8 text-gray-600">
-              Looks like you haven&apos;t added anything to your cart yet.
-            </p>
-            <Link
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-4 font-semibold text-white transition-colors hover:bg-blue-700"
-              href="/products"
-            >
-              <ArrowLeft size={20} />
-              Continue Shopping
-            </Link>
-          </div>
+      <main className="flex min-h-[65vh] items-center justify-center px-5 text-center">
+        <div className="max-w-md">
+          <ShoppingBag
+            aria-hidden="true"
+            className="mx-auto text-black/20"
+            size={58}
+            strokeWidth={1}
+          />
+          <h1 className="mt-5 text-3xl font-medium tracking-[-0.035em]">Your cart is empty</h1>
+          <p className="mt-3 text-sm leading-6 text-black/55">
+            Add a product to start building your order.
+          </p>
+          <Link
+            className="bg-ink mt-7 inline-flex min-h-12 items-center gap-2 px-7 text-sm font-semibold text-white"
+            href="/products"
+          >
+            <ArrowLeft aria-hidden="true" size={16} />
+            Browse products
+          </Link>
         </div>
-      </div>
+      </main>
     );
   }
 
+  const clearAll = () => {
+    if (window.confirm('Clear every item from your cart?')) {
+      clearCart.mutate();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b bg-white">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-          <p className="mt-1 text-gray-600">
-            {cart.totalItems} {cart.totalItems === 1 ? 'item' : 'items'} in your cart
-          </p>
+    <main className="bg-canvas min-h-screen">
+      <header className="border-line border-b px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
+        <div className="mx-auto max-w-[1500px]">
+          <p className="text-warm text-xs font-semibold uppercase tracking-[0.16em]">Your order</p>
+          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+            <h1 className="text-4xl font-medium tracking-[-0.045em] sm:text-5xl">Shopping cart</h1>
+            <p className="text-sm text-black/55">
+              {cart.totalItems} {cart.totalItems === 1 ? 'item' : 'items'}
+            </p>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <div className="rounded-lg bg-white shadow">
-              <div className="flex items-center justify-between border-b border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900">Cart Items</h2>
-                <button
-                  className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
-                  disabled={clearCart.isPending}
-                  onClick={handleClearCart}
-                >
-                  Clear cart
-                </button>
-              </div>
-
-              <div className="divide-y divide-gray-200 p-6">
-                {cart.items.map((item) => (
-                  <CartItem key={item.id} item={item} />
-                ))}
-              </div>
-            </div>
-
-            <Link
-              className="mt-6 inline-flex items-center gap-2 font-medium text-blue-600 hover:text-blue-700"
-              href="/products"
+      <div className="mx-auto grid max-w-[1500px] gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-12 lg:py-16">
+        <section aria-labelledby="cart-items-heading">
+          <div className="border-line flex min-h-14 items-center justify-between border-b">
+            <h2
+              className="text-sm font-semibold uppercase tracking-[0.12em]"
+              id="cart-items-heading"
             >
-              <ArrowLeft size={20} />
-              Continue Shopping
-            </Link>
+              Items
+            </h2>
+            <button
+              className="min-h-11 text-xs text-black/55 hover:underline disabled:opacity-40"
+              disabled={clearCart.isPending}
+              type="button"
+              onClick={clearAll}
+            >
+              Clear cart
+            </button>
           </div>
+          {cart.items.map((item) => (
+            <CartItem key={item.id} item={item} />
+          ))}
+          <Link
+            className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:underline"
+            href="/products"
+          >
+            <ArrowLeft aria-hidden="true" size={16} />
+            Continue shopping
+          </Link>
+        </section>
 
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 rounded-lg bg-white p-6 shadow">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">Order Summary</h2>
-
-              <div className="mb-6 space-y-3">
-                <div className="flex justify-between text-gray-700">
-                  <span>Subtotal ({cart.totalItems} items)</span>
-                  <span className="font-medium">{formatPriceKsh(cart.subtotal)}</span>
-                </div>
-
-                {cart.tax > 0 ? (
-                  <div className="flex justify-between text-gray-700">
-                    <span>Tax</span>
-                    <span className="font-medium">{formatPriceKsh(cart.tax)}</span>
-                  </div>
-                ) : null}
-
-                <div className="border-t border-gray-200 pt-3">
-                  <div className="flex justify-between text-lg font-bold text-gray-900">
-                    <span>Total</span>
-                    <span>{formatPriceKsh(cart.total)}</span>
-                  </div>
-                </div>
+        <aside className="border-line h-fit border p-6 sm:p-8 lg:sticky lg:top-6">
+          <h2 className="text-xl font-medium tracking-[-0.02em]">Order summary</h2>
+          <div className="mt-6 space-y-3 text-sm">
+            <div className="flex justify-between text-black/60">
+              <span>Subtotal</span>
+              <span className="text-black">{formatPriceKsh(cart.subtotal)}</span>
+            </div>
+            {cart.tax > 0 ? (
+              <div className="flex justify-between text-black/60">
+                <span>Tax</span>
+                <span className="text-black">{formatPriceKsh(cart.tax)}</span>
               </div>
-
-              <Link
-                className="mb-3 block w-full rounded-lg bg-blue-600 px-6 py-4 text-center font-semibold text-white transition-colors hover:bg-blue-700"
-                href="/checkout"
-              >
-                Proceed to Checkout
-              </Link>
-
-              <div className="text-center text-sm text-gray-500">
-                Secure checkout with SSL encryption
-              </div>
+            ) : null}
+            <div className="border-line flex justify-between border-t pt-4 text-lg font-semibold">
+              <span>Total</span>
+              <span>{formatPriceKsh(cart.total)}</span>
             </div>
           </div>
-        </div>
+          <p className="mt-3 text-xs leading-5 text-black/50">
+            Delivery options and their exact cost are confirmed in checkout.
+          </p>
+          <Link
+            className="bg-ink mt-6 flex min-h-14 w-full items-center justify-center text-sm font-semibold text-white"
+            href="/checkout"
+          >
+            Proceed to checkout
+          </Link>
+          <p className="mt-4 flex items-center justify-center gap-2 text-[11px] text-black/50">
+            <LockKeyhole aria-hidden="true" size={13} /> Secure checkout
+          </p>
+        </aside>
       </div>
-    </div>
+    </main>
   );
 }

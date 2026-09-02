@@ -1,9 +1,8 @@
 'use client';
 
-import { Minus, Plus, Trash2, AlertCircle } from 'lucide-react';
+import { AlertCircle, Minus, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-
 
 import { useRemoveFromCart, useUpdateCartItem } from '@/lib/cart/cart.mutations';
 import { formatPriceKsh } from '@/lib/utils/currency';
@@ -18,89 +17,106 @@ interface CartItemProps {
 export function CartItem({ item }: CartItemProps) {
   const updateItem = useUpdateCartItem();
   const removeItem = useRemoveFromCart();
+  const imageUrl = resolveMediaUrl(item.productImageUrl);
+  const isUpdating = updateItem.isPending || removeItem.isPending;
 
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity < 1 || newQuantity > item.availableStock) {return;}
-    updateItem.mutate({ cartItemId: item.id, input: { quantity: newQuantity } });
-  };
-
-  const handleRemove = () => {
-    removeItem.mutate(item.id);
+  const updateQuantity = (quantity: number) => {
+    if (quantity >= 1 && quantity <= item.availableStock) {
+      updateItem.mutate({ cartItemId: item.id, quantity });
+    }
   };
 
   return (
-    <div className="flex gap-4 border-b border-gray-200 py-4">
-      <Link className="flex-shrink-0" href={`/products/${item.productSlug}`}>
-        {item.productImageUrl ? (
+    <article className="border-line grid grid-cols-[84px_minmax(0,1fr)] gap-4 border-b py-5 sm:grid-cols-[104px_minmax(0,1fr)]">
+      <Link
+        aria-label={`View ${item.productName}`}
+        className="bg-sand relative aspect-square overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+        href={`/products/${item.productSlug}`}
+      >
+        {imageUrl ? (
           <Image
+            fill
             alt={item.productName}
-            className="h-20 w-20 rounded-lg border border-gray-200 object-contain"
-            height={80}
-            src={resolveMediaUrl(item.productImageUrl) || ''}
-            width={80}
+            className="object-cover"
+            sizes="104px"
+            src={imageUrl}
           />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gray-100">
-            <span className="text-2xl text-gray-400">{item.productName[0]}</span>
-          </div>
+          <span className="flex h-full items-center justify-center text-2xl text-black/30">
+            {item.productName.charAt(0)}
+          </span>
         )}
       </Link>
 
-      <div className="min-w-0 flex-1">
-        <Link
-          className="line-clamp-2 font-semibold text-gray-900 hover:text-blue-600"
-          href={`/products/${item.productSlug}`}
-        >
-          {item.productName}
-        </Link>
-
-        <p className="mt-1 text-sm text-gray-600">SKU: {item.productSku}</p>
-
-        {item.priceChanged && item.currentPrice !== undefined ? <div className="mt-2 flex items-center gap-2 text-sm">
-            <AlertCircle className="text-orange-500" size={16} />
-            <span className="text-orange-700">
-              Price changed: {formatPriceKsh(item.currentPrice)}
-            </span>
-          </div> : null}
-
-        {!item.inStock ? <div className="mt-2 flex items-center gap-2 text-sm text-red-600">
-            <AlertCircle size={16} />
-            <span>Out of stock</span>
-          </div> : null}
-
-        <div className="mt-3 flex items-center gap-4">
-          <div className="flex items-center rounded-lg border border-gray-300">
-            <button
-              className="p-2 hover:bg-gray-100 disabled:opacity-50"
-              disabled={updateItem.isPending || item.quantity <= 1}
-              onClick={() => handleQuantityChange(item.quantity - 1)}
+      <div className="min-w-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Link
+              className="line-clamp-2 text-sm font-semibold leading-5 text-black hover:underline"
+              href={`/products/${item.productSlug}`}
             >
-              <Minus size={16} />
+              {item.productName}
+            </Link>
+            <p className="mt-1 truncate text-[10px] uppercase tracking-[0.08em] text-black/50">
+              SKU {item.productSku}
+            </p>
+          </div>
+          <p className="shrink-0 text-sm font-semibold text-black">
+            {formatPriceKsh(item.totalWithTax)}
+          </p>
+        </div>
+
+        {item.priceChanged && item.currentPrice !== undefined ? (
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-[#9a5d3b]">
+            <AlertCircle aria-hidden="true" size={14} />
+            Price is now {formatPriceKsh(item.currentPrice)}
+          </p>
+        ) : null}
+
+        {!item.inStock ? (
+          <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-red-700">
+            <AlertCircle aria-hidden="true" size={14} />
+            Out of stock
+          </p>
+        ) : null}
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="border-line flex h-10 items-center rounded-full border">
+            <button
+              aria-label={`Decrease ${item.productName} quantity`}
+              className="flex size-10 items-center justify-center disabled:cursor-not-allowed disabled:opacity-30"
+              disabled={isUpdating || item.quantity <= 1}
+              type="button"
+              onClick={() => updateQuantity(item.quantity - 1)}
+            >
+              <Minus aria-hidden="true" size={14} />
             </button>
-            <span className="min-w-[3rem] px-4 py-2 text-center font-medium">{item.quantity}</span>
+            <span aria-live="polite" className="min-w-8 text-center text-xs font-semibold">
+              {item.quantity}
+            </span>
             <button
-              className="p-2 hover:bg-gray-100 disabled:opacity-50"
-              disabled={updateItem.isPending || item.quantity >= item.availableStock}
-              onClick={() => handleQuantityChange(item.quantity + 1)}
+              aria-label={`Increase ${item.productName} quantity`}
+              className="flex size-10 items-center justify-center disabled:cursor-not-allowed disabled:opacity-30"
+              disabled={isUpdating || item.quantity >= item.availableStock || !item.inStock}
+              type="button"
+              onClick={() => updateQuantity(item.quantity + 1)}
             >
-              <Plus size={16} />
+              <Plus aria-hidden="true" size={14} />
             </button>
           </div>
 
           <button
-            className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:opacity-50"
-            disabled={removeItem.isPending}
-            onClick={handleRemove}
+            aria-label={`Remove ${item.productName} from cart`}
+            className="inline-flex min-h-10 items-center gap-1.5 text-xs text-black/60 hover:text-black disabled:opacity-30"
+            disabled={isUpdating}
+            type="button"
+            onClick={() => removeItem.mutate(item.id)}
           >
-            <Trash2 size={18} />
+            <Trash2 aria-hidden="true" size={15} />
+            Remove
           </button>
         </div>
       </div>
-
-      <div className="text-right">
-        <div className="text-lg font-bold text-gray-900">{formatPriceKsh(item.totalWithTax)}</div>
-        {item.quantity > 1 ? <div className="mt-1 text-sm text-gray-600">{formatPriceKsh(item.price)} each</div> : null}
-      </div>
-    </div>
+    </article>
   );
 }

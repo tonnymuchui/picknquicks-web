@@ -1,7 +1,7 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
-import { Plus, Edit, Trash2, Loader2, Search, ExternalLink, Star } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Search, ExternalLink } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { BrandFormModal } from '@/components/admin/brand/brand-form-modal';
@@ -49,40 +49,43 @@ export default function AdminBrandsPage() {
 
   return (
     <ProtectedRoute requiredRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
-      <div className="min-h-screen bg-gray-950 p-4 md:p-8">
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
+      <div className="min-h-screen bg-white p-4 sm:p-7 xl:p-9">
+        <div className="space-y-7">
+          <div className="flex flex-col justify-between gap-5 border-b border-black/10 pb-7 sm:flex-row sm:items-end">
             <div>
-              <h1 className="text-3xl font-bold text-white">Brands</h1>
-              <p className="mt-2 text-gray-400">Manage product brands</p>
+              <p className="text-xs font-bold uppercase tracking-[.18em] text-[#9a5d3b]">Catalog</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-[-.045em] text-black sm:text-4xl">
+                Brands
+              </h1>
+              <p className="mt-2 text-sm text-black/50">Organise makers and product collections.</p>
             </div>
             <button
-              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
+              className="flex h-11 items-center gap-2 bg-[#9a5d3b] px-5 text-sm font-semibold text-white hover:bg-[#754329]"
               onClick={handleCreate}
             >
               <Plus size={20} />
-              Create Brand
+              Add brand
             </button>
           </div>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+              <Loader2 className="h-7 w-7 animate-spin text-black/45" />
             </div>
           ) : (
             <div className={`grid grid-cols-1 gap-6 ${selectedBrand ? 'lg:grid-cols-3' : ''}`}>
               <div
-                className={`rounded-lg border border-gray-800 bg-gray-900 ${selectedBrand ? 'lg:col-span-2' : ''}`}
+                className={`border border-black/15 bg-white ${selectedBrand ? 'lg:col-span-2' : ''}`}
               >
-                <div className="border-b border-gray-800 p-4">
+                <div className="border-b border-black/10 p-4">
                   <div className="relative">
                     <Search
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-black/35"
                       size={20}
                     />
                     <input
-                      className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pl-10 pr-4 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="Search brands..."
+                      className="w-full border border-black/20 bg-white py-2.5 pl-10 pr-4 text-sm text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
+                      placeholder="Search brands"
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -90,48 +93,52 @@ export default function AdminBrandsPage() {
                   </div>
                 </div>
 
-                <div className="divide-y divide-gray-800">
+                <div className="divide-y divide-black/10">
                   {brandsData?.content.map((brand: Brand) => (
                     <div
                       key={brand.id}
-                      className={`cursor-pointer p-4 transition-colors hover:bg-gray-800/50 ${
+                      className={`cursor-pointer p-4 transition-colors hover:bg-[#f1f1f1] ${
                         selectedBrand?.id === brand.id
-                          ? 'border-l-2 border-purple-500 bg-purple-950/30'
+                          ? 'border-l-2 border-[#9a5d3b] bg-[#f1f1f1]'
                           : ''
                       }`}
                       onClick={() => setSelectedBrand(brand)}
                     >
                       <div className="flex items-start gap-4">
                         {brand.logoUrl ? (
-                          <img
+                          <Image
                             alt={brand.name}
-                            className="h-16 w-16 flex-shrink-0 rounded-lg border border-gray-700 bg-gray-800 object-contain p-2"
+                            className="h-16 w-16 flex-shrink-0 border border-black/10 bg-white object-contain p-2"
+                            height={64}
                             src={resolveMediaUrl(brand.logoUrl) || brand.logoUrl}
+                            width={64}
                           />
                         ) : (
-                          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-2xl font-bold text-gray-500">
+                          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center border border-black/10 bg-[#f1f1f1] font-serif text-2xl text-black/45">
                             {brand.name[0]}
                           </div>
                         )}
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold text-white">{brand.name}</h3>
+                            <h3 className="text-lg font-semibold text-black">{brand.name}</h3>
                             {brand.featured ? (
-                              <Star className="fill-yellow-500 text-yellow-500" size={16} />
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-black/45">
+                                Featured
+                              </span>
                             ) : null}
                             {!brand.active ? (
-                              <span className="rounded-full bg-gray-700/50 px-2 py-0.5 text-xs text-gray-300">
+                              <span className="border border-black/10 bg-[#f1f1f1] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-black/55">
                                 Inactive
                               </span>
                             ) : null}
                           </div>
                           {brand.description ? (
-                            <p className="mt-1 line-clamp-2 text-sm text-gray-400">
+                            <p className="mt-1 line-clamp-2 text-sm text-black/55">
                               {brand.description}
                             </p>
                           ) : null}
-                          <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                          <div className="mt-2 flex items-center gap-4 text-xs text-black/40">
                             {brand.countryOfOrigin ? <span>{brand.countryOfOrigin}</span> : null}
                             <span>{brand.productCount} products</span>
                           </div>
@@ -139,7 +146,8 @@ export default function AdminBrandsPage() {
 
                         <div className="flex gap-2">
                           <button
-                            className="rounded-lg p-2 text-purple-400 transition-colors hover:bg-gray-800"
+                            aria-label={`Edit ${brand.name}`}
+                            className="p-2 text-black/55 transition-colors hover:bg-[#f1f1f1] hover:text-black"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEdit(brand);
@@ -148,7 +156,8 @@ export default function AdminBrandsPage() {
                             <Edit size={18} />
                           </button>
                           <button
-                            className="rounded-lg p-2 text-red-400 transition-colors hover:bg-gray-800"
+                            aria-label={`Delete ${brand.name}`}
+                            className="p-2 text-red-700 transition-colors hover:bg-red-50"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(brand);
@@ -163,20 +172,20 @@ export default function AdminBrandsPage() {
                 </div>
 
                 {brandsData && brandsData.totalPages > 1 ? (
-                  <div className="flex items-center justify-between border-t border-gray-800 p-4">
-                    <div className="text-sm text-gray-400">
+                  <div className="flex items-center justify-between border-t border-black/10 p-4">
+                    <div className="text-sm text-black/50">
                       Page {page + 1} of {brandsData.totalPages}
                     </div>
                     <div className="flex gap-2">
                       <button
-                        className="rounded-lg border border-gray-700 px-3 py-1 text-sm text-gray-300 transition-colors hover:bg-gray-800 disabled:opacity-30"
+                        className="border border-black/20 px-3 py-1.5 text-sm text-black/70 transition-colors hover:bg-[#f1f1f1] disabled:opacity-30"
                         disabled={page === 0}
                         onClick={() => setPage((p) => Math.max(0, p - 1))}
                       >
                         Previous
                       </button>
                       <button
-                        className="rounded-lg border border-gray-700 px-3 py-1 text-sm text-gray-300 transition-colors hover:bg-gray-800 disabled:opacity-30"
+                        className="border border-black/20 px-3 py-1.5 text-sm text-black/70 transition-colors hover:bg-[#f1f1f1] disabled:opacity-30"
                         disabled={page === brandsData.totalPages - 1}
                         onClick={() => setPage((p) => Math.min(brandsData.totalPages - 1, p + 1))}
                       >
@@ -188,46 +197,63 @@ export default function AdminBrandsPage() {
               </div>
 
               {selectedBrand ? (
-                <div className="rounded-lg border border-gray-800 bg-gray-900 p-6 lg:col-span-1">
+                <aside className="border border-black/10 bg-[#f1f1f1] p-6 lg:col-span-1">
                   <div className="space-y-6">
                     <div>
-                      <h2 className="mb-2 text-xl font-bold text-white">{selectedBrand.name}</h2>
+                      <p className="text-[10px] font-bold uppercase tracking-[.15em] text-black/40">
+                        Brand details
+                      </p>
+                      <h2 className="mt-2 text-xl font-semibold text-black">
+                        {selectedBrand.name}
+                      </h2>
                       {selectedBrand.description ? (
-                        <p className="text-sm text-gray-400">{selectedBrand.description}</p>
+                        <p className="mt-2 text-sm leading-6 text-black/55">
+                          {selectedBrand.description}
+                        </p>
                       ) : null}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 border-b border-gray-800 pb-6">
+                    <div className="grid grid-cols-2 gap-5 border-b border-black/10 pb-6">
                       <div>
-                        <label className="text-sm font-medium text-gray-400">Slug</label>
-                        <p className="text-white">{selectedBrand.slug}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-black/40">
+                          Slug
+                        </p>
+                        <p className="mt-1 text-sm text-black">{selectedBrand.slug}</p>
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-gray-400">Country</label>
-                        <p className="text-white">{selectedBrand.countryOfOrigin || 'N/A'}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-black/40">
+                          Country
+                        </p>
+                        <p className="mt-1 text-sm text-black">
+                          {selectedBrand.countryOfOrigin || 'Not set'}
+                        </p>
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-gray-400">Products</label>
-                        <p className="text-white">{selectedBrand.productCount}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-black/40">
+                          Products
+                        </p>
+                        <p className="mt-1 text-sm text-black">{selectedBrand.productCount}</p>
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-gray-400">Display Order</label>
-                        <p className="text-white">{selectedBrand.displayOrder}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-black/40">
+                          Display order
+                        </p>
+                        <p className="mt-1 text-sm text-black">{selectedBrand.displayOrder}</p>
                       </div>
                     </div>
 
                     {selectedBrand.websiteUrl ? (
                       <a
-                        className="flex items-center gap-2 text-purple-400 transition-colors hover:text-purple-300"
+                        className="flex items-center gap-2 text-sm font-semibold text-[#9a5d3b] underline underline-offset-4 hover:text-[#754329]"
                         href={selectedBrand.websiteUrl}
                         rel="noopener noreferrer"
                         target="_blank"
                       >
                         <ExternalLink size={16} />
-                        Visit Website
+                        Visit website
                       </a>
                     ) : null}
 
@@ -237,7 +263,7 @@ export default function AdminBrandsPage() {
                       logoUrl={selectedBrand.logoUrl}
                     />
                   </div>
-                </div>
+                </aside>
               ) : null}
             </div>
           )}

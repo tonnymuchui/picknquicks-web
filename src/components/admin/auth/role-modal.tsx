@@ -7,7 +7,6 @@ import { z } from 'zod';
 
 import { useCreateRole, useUpdateRole } from '@/lib/admin/mutations';
 
-
 import type { RoleResponse } from '@/types/admin';
 
 const roleSchema = z.object({
@@ -75,20 +74,22 @@ export function RoleModal({ isOpen, onClose, role }: RoleModalProps) {
     onClose();
   };
 
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="mx-4 w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 p-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 ">
+      <div className="mx-4 w-full max-w-md  bg-white ">
+        <div className="flex items-center justify-between border-b border-black/10 p-5">
           <div className="flex items-center gap-2">
             <Shield className="text-primary h-5 w-5" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-black">
               {isEditing ? 'Edit Role' : 'Create Role'}
             </h2>
           </div>
           <button
-            className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className=" p-1 text-black/45 transition-colors hover:bg-[#f1f1f1] hover:text-black/65"
             onClick={handleClose}
           >
             <X size={24} />
@@ -97,39 +98,41 @@ export function RoleModal({ isOpen, onClose, role }: RoleModalProps) {
 
         <form className="space-y-4 p-5" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Role Name <span className="text-red-500">*</span>
-            </label>
+            <label className="mb-1 block text-sm font-medium text-black/70">Role name</label>
             <input
               {...register('name')}
-              className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
+              className="focus:border-primary focus:ring-primary/20 w-full  border border-black/15 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
               placeholder="e.g. WAREHOUSE_MANAGER"
               type="text"
             />
-            {errors.name ? <p className="mt-1 text-sm text-red-600">{errors.name.message}</p> : null}
+            {errors.name ? (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            ) : null}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
+            <label className="mb-1 block text-sm font-medium text-black/70">Description</label>
             <textarea
               {...register('description')}
-              className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
+              className="focus:border-primary focus:ring-primary/20 w-full  border border-black/15 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
               placeholder="What can this role do?"
               rows={3}
             />
-            {errors.description ? <p className="mt-1 text-sm text-red-600">{errors.description.message}</p> : null}
+            {errors.description ? (
+              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+            ) : null}
           </div>
 
-          <div className="-mx-5 -mb-5 flex justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-5">
+          <div className="-b-2xl -mx-5 -mb-5 flex justify-end gap-3 border-t border-black/10 bg-gray-50/50 p-5">
             <button
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+              className=" border border-black/15 bg-white px-4 py-2.5 text-sm font-medium text-black/65 transition-colors hover:bg-[#f1f1f1]"
               type="button"
               onClick={handleClose}
             >
               Cancel
             </button>
             <button
-              className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-primary hover:bg-primary-light flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               disabled={isPending}
               type="submit"
             >

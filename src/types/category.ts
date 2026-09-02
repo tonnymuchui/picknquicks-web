@@ -64,9 +64,31 @@ export interface UpdateCategoryInput {
   metaKeywords?: string;
 }
 
-export interface CategoryFilters {
-  page?: number;
-  size?: number;
-  sortBy?: string;
-  sortDirection?: 'ASC' | 'DESC';
+export type CategoryStoryKind = 'HERO' | 'SCENE' | 'GUIDE';
+
+export interface CategoryStoryItem {
+  id: string;
+  categoryId: string;
+  kind: CategoryStoryKind;
+  eyebrow?: string;
+  title: string;
+  body?: string;
+  mediaUrl?: string;
+  altText?: string;
+  displayOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CategoryStoryInput {
+  kind: CategoryStoryKind;
+  eyebrow?: string;
+  title: string;
+  body?: string;
+  mediaUrl?: string;
+  altText?: string;
+  displayOrder?: number;
+  active?: boolean;
+  file?: File;
 }

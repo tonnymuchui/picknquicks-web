@@ -1,10 +1,12 @@
 'use client';
 
-import { X, ShoppingBag, Loader2 } from 'lucide-react';
+import { Loader2, ShoppingBag, X } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 import { useClearCart } from '@/lib/cart/cart.mutations';
 import { useCart } from '@/lib/cart/cart.queries';
+import { formatPriceKsh } from '@/lib/utils/currency';
 
 import { CartItem } from './cart-item';
 
@@ -14,124 +16,150 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const { data: cart, isLoading } = useCart();
+  const { data: cart, isLoading } = useCart(isOpen);
   const clearCart = useClearCart();
 
-  const handleClearCart = () => {
-    if (confirm('Clear all items from cart?')) {
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  const clearAll = () => {
+    if (window.confirm('Clear every item from your cart?')) {
       clearCart.mutate();
     }
   };
 
-  if (!isOpen) {return null;}
-
   return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+    <div
+      aria-label="Shopping cart"
+      aria-modal="true"
+      className="fixed inset-0 z-[80]"
+      role="dialog"
+    >
+      <button
+        aria-label="Close cart"
+        className="absolute inset-0 bg-black/45"
+        type="button"
         onClick={onClose}
       />
 
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <ShoppingBag size={24} />
-            Shopping Cart
-            {cart && cart.totalItems > 0 ? <span className="px-2 py-1 bg-blue-600 text-white text-sm rounded-full">
+      <aside className="absolute right-0 top-0 flex h-dvh w-full max-w-[470px] flex-col bg-white shadow-2xl">
+        <header className="border-line flex min-h-[76px] items-center justify-between border-b px-5 sm:px-7">
+          <div className="flex items-center gap-3">
+            <ShoppingBag aria-hidden="true" size={20} strokeWidth={1.5} />
+            <h2 className="text-base font-semibold uppercase tracking-[0.12em]">Cart</h2>
+            {cart?.totalItems ? (
+              <span className="bg-ink rounded-full px-2 py-0.5 text-[10px] text-white">
                 {cart.totalItems}
-              </span> : null}
-          </h2>
+              </span>
+            ) : null}
+          </div>
           <button
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Close cart"
+            className="flex size-11 items-center justify-center"
+            type="button"
             onClick={onClose}
           >
-            <X size={24} />
+            <X aria-hidden="true" size={20} strokeWidth={1.5} />
           </button>
-        </div>
+        </header>
 
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <div className="flex flex-1 items-center justify-center">
+            <Loader2 aria-label="Loading cart" className="animate-spin" size={26} />
           </div>
         ) : !cart || cart.items.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <ShoppingBag className="text-gray-300 mb-4" size={64} />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Your cart is empty
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Add some items to get started
+          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+            <ShoppingBag aria-hidden="true" className="text-black/20" size={54} strokeWidth={1} />
+            <h3 className="mt-6 text-2xl font-medium tracking-[-0.03em]">Your cart is empty</h3>
+            <p className="mt-2 max-w-xs text-sm leading-6 text-black/55">
+              Explore the collection and add the pieces that fit your setup.
             </p>
             <Link
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+              className="bg-ink mt-7 inline-flex min-h-12 items-center justify-center px-7 text-sm font-semibold text-white"
               href="/products"
               onClick={onClose}
             >
-              Browse Products
+              Browse products
             </Link>
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-700">
+            <div className="flex-1 overflow-y-auto px-5 sm:px-7">
+              <div className="flex min-h-14 items-center justify-between">
+                <p className="text-xs text-black/55">
                   {cart.totalItems} {cart.totalItems === 1 ? 'item' : 'items'}
-                </h3>
+                </p>
                 <button
-                  className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+                  className="min-h-11 text-xs text-black/55 underline-offset-4 hover:underline disabled:opacity-40"
                   disabled={clearCart.isPending}
-                  onClick={handleClearCart}
+                  type="button"
+                  onClick={clearAll}
                 >
                   Clear cart
                 </button>
               </div>
-
-              <div className="space-y-0">
-                {cart.items.map((item) => (
-                  <CartItem key={item.id} item={item} />
-                ))}
-              </div>
+              {cart.items.map((item) => (
+                <CartItem key={item.id} item={item} />
+              ))}
             </div>
 
-            <div className="border-t border-gray-200 p-6 bg-gray-50">
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium text-gray-900">
-                    ${cart.subtotal.toFixed(2)}
-                  </span>
+            <footer className="border-line bg-sand/45 border-t p-5 sm:p-7">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between text-black/60">
+                  <span>Subtotal</span>
+                  <span className="text-black">{formatPriceKsh(cart.subtotal)}</span>
                 </div>
-                {cart.tax > 0 ? <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="font-medium text-gray-900">
-                      ${cart.tax.toFixed(2)}
-                    </span>
-                  </div> : null}
-                <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-300">
+                {cart.tax > 0 ? (
+                  <div className="flex justify-between text-black/60">
+                    <span>Tax</span>
+                    <span className="text-black">{formatPriceKsh(cart.tax)}</span>
+                  </div>
+                ) : null}
+                <div className="border-line flex justify-between border-t pt-3 text-lg font-semibold">
                   <span>Total</span>
-                  <span>${cart.total.toFixed(2)}</span>
+                  <span>{formatPriceKsh(cart.total)}</span>
                 </div>
               </div>
-
+              <p className="mt-2 text-[11px] text-black/50">Delivery is calculated at checkout.</p>
               <Link
-                className="block w-full px-6 py-4 bg-blue-600 text-white text-center rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="bg-ink mt-5 flex min-h-14 w-full items-center justify-center text-sm font-semibold text-white"
                 href="/checkout"
                 onClick={onClose}
               >
-                Proceed to Checkout
+                Checkout
               </Link>
-
               <Link
-                className="block w-full px-6 py-3 mt-2 border-2 border-gray-300 text-gray-700 text-center rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                className="border-ink mt-2 flex min-h-12 w-full items-center justify-center border text-sm font-semibold"
                 href="/cart"
                 onClick={onClose}
               >
-                View Cart
+                View cart
               </Link>
-            </div>
+            </footer>
           </>
         )}
-      </div>
-    </>
+      </aside>
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Loader2, UserPlus } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useCreateStaff } from '@/lib/admin/mutations';
@@ -33,8 +33,8 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
-    watch,
     setValue,
     reset,
   } = useForm<CreateStaffInput>({
@@ -44,8 +44,7 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
     },
   });
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const selectedRoles = watch('roles');
+  const selectedRoles = useWatch({ control, name: 'roles' });
 
   const handleToggleRole = (role: UserRole) => {
     const currentRoles = selectedRoles || [];
@@ -74,15 +73,15 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="sticky top-0 flex items-center justify-between rounded-t-2xl border-b border-gray-100 bg-white p-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 ">
+      <div className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto  bg-white ">
+        <div className="-t-2xl sticky top-0 flex items-center justify-between border-b border-black/10 bg-white p-5">
           <div className="flex items-center gap-2">
             <UserPlus className="text-primary h-5 w-5" />
-            <h2 className="text-lg font-semibold text-gray-900">Create Staff Member</h2>
+            <h2 className="text-lg font-semibold text-black">Create Staff Member</h2>
           </div>
           <button
-            className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className=" p-1 text-black/45 transition-colors hover:bg-[#f1f1f1] hover:text-black/65"
             onClick={handleClose}
           >
             <X size={24} />
@@ -91,13 +90,13 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
 
         <form className="space-y-5 p-5" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <h3 className="mb-4 text-base font-semibold text-gray-900">Personal Information</h3>
+            <h3 className="mb-4 text-base font-semibold text-black">Personal Information</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">First Name</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">First Name</label>
                 <input
                   {...register('firstName')}
-                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
+                  className="focus:border-primary focus:ring-primary/20 w-full  border border-black/15 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="John"
                   type="text"
                 />
@@ -107,10 +106,10 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Last Name</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Last Name</label>
                 <input
                   {...register('lastName')}
-                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
+                  className="focus:border-primary focus:ring-primary/20 w-full  border border-black/15 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="Doe"
                   type="text"
                 />
@@ -120,10 +119,10 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Email</label>
                 <input
                   {...register('email')}
-                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
+                  className="focus:border-primary focus:ring-primary/20 w-full  border border-black/15 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="john@picknquicks.com"
                   type="email"
                 />
@@ -133,12 +132,12 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black/70">
                   Phone (Optional)
                 </label>
                 <input
                   {...register('phone')}
-                  className="focus:border-primary focus:ring-primary/20 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
+                  className="focus:border-primary focus:ring-primary/20 w-full  border border-black/15 bg-gray-50/50 px-3 py-2 focus:outline-none focus:ring-2"
                   placeholder="+254712345678"
                   type="tel"
                 />
@@ -150,29 +149,29 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
           </div>
 
           <div>
-            <h3 className="mb-4 text-base font-semibold text-gray-900">Assign Roles</h3>
+            <h3 className="mb-4 text-base font-semibold text-black">Assign Roles</h3>
             <div className="space-y-3">
               {[UserRole.STAFF, UserRole.MANAGER, UserRole.ADMIN].map((role) => (
                 <label
                   key={role}
-                  className="hover:bg-primary/2 flex cursor-pointer items-center rounded-xl border border-gray-100 p-3 transition-colors"
+                  className="hover:bg-primary/2 flex cursor-pointer items-center  border border-black/10 p-3 transition-colors"
                 >
                   <input
                     checked={selectedRoles?.includes(role) || false}
-                    className="text-primary focus:ring-primary/30 h-4 w-4 rounded"
+                    className="text-primary focus:ring-primary/30 h-4 w-4 "
                     type="checkbox"
                     onChange={() => handleToggleRole(role)}
                   />
                   <div className="ml-3 flex-1">
-                    <span className="font-medium text-gray-900">{role}</span>
-                    <p className="text-sm text-gray-500">
+                    <span className="font-medium text-black">{role}</span>
+                    <p className="text-sm text-black/45">
                       {role === UserRole.ADMIN ? 'Full system access and user management' : null}
                       {role === UserRole.MANAGER ? 'Manage products, orders, and reports' : null}
                       {role === UserRole.STAFF ? 'Process orders and customer support' : null}
                     </p>
                   </div>
                   <span
-                    className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${
+                    className={`ml-2  px-2 py-0.5 text-xs font-medium ${
                       role === UserRole.ADMIN
                         ? 'bg-accent/10 text-accent'
                         : role === UserRole.MANAGER
@@ -190,23 +189,23 @@ export function CreateStaffModal({ isOpen, onClose }: CreateStaffModalProps) {
             ) : null}
           </div>
 
-          <div className="bg-primary/5 border-primary/10 rounded-xl border p-4">
+          <div className="bg-primary/5 border-primary/10  border p-4">
             <p className="text-primary-dark text-sm">
               ℹ️ A temporary password will be generated and sent to the staff member&apos;s email.
               They will be required to change it on first login.
             </p>
           </div>
 
-          <div className="-mx-5 -mb-5 flex items-center justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-5">
+          <div className="-b-2xl -mx-5 -mb-5 flex items-center justify-end gap-3 border-t border-black/10 bg-gray-50/50 p-5">
             <button
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+              className=" border border-black/15 bg-white px-4 py-2.5 text-sm font-medium text-black/65 transition-colors hover:bg-[#f1f1f1]"
               type="button"
               onClick={handleClose}
             >
               Cancel
             </button>
             <button
-              className="bg-primary shadow-primary/25 hover:bg-primary-light flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-primary hover:bg-primary-light flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               disabled={createStaff.isPending}
               type="submit"
             >

@@ -1,8 +1,12 @@
-import z from "zod";
+import z from 'zod';
 
 export const productSchema = z.object({
   name: z.string().min(3).max(255),
-  slug: z.string().min(3).max(150).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  slug: z
+    .string()
+    .min(3)
+    .max(150)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   sku: z.string().min(2).max(100),
   description: z.string().max(2000).optional().or(z.literal('')),
   shortDescription: z.string().max(500).optional().or(z.literal('')),

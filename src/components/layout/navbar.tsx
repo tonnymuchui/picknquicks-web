@@ -1,499 +1,535 @@
 'use client';
 
-import {
-  ChevronDown,
-  FileText,
-  Grid,
-  Heart,
-  Headphones,
-  Menu,
-  Search,
-  Shield,
-  ShoppingBag,
-  Sparkles,
-  Truck,
-  User,
-  X,
-  Zap,
-} from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Loader2, Menu, Minus, Plus, Search, ShoppingBag, Trash2, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { UserMenu } from '@/components/auth/user-menu';
+import { AuthModal } from '@/components/auth/auth-modal';
 import { CartDrawer } from '@/components/cart/cart-drawer';
+import { BrandLogo } from '@/components/common/brand-logo';
 import { useAuth } from '@/lib/auth/hooks';
-import { useCart } from '@/lib/cart/cart.queries';
-import { useCategories } from '@/lib/category/categories.queries';
+import { useRemoveFromCart, useUpdateCartItem } from '@/lib/cart/cart.mutations';
+import { cartKeys, useCart } from '@/lib/cart/cart.queries';
+import { mergeGuestCart } from '@/lib/cart/merge-guest-cart';
+import { useCategoryTree } from '@/lib/category/categories.queries';
+import { claimGuestOrders } from '@/lib/order/claim-guest-orders';
+import { formatPriceKsh } from '@/lib/utils/currency';
 import { resolveMediaUrl } from '@/lib/utils/media';
 import { UserRole } from '@/types/auth';
 
 import { MobileMenu } from './mobile-menu';
 import { SearchModal } from './search-modal';
-import { AuthModal } from '../auth/auth-modal';
 
-import type { Category } from '@/types/category';
+const MPESA_TILL_NUMBER = process.env.NEXT_PUBLIC_MPESA_TILL_NUMBER?.trim();
 
-const PROMO_MESSAGES = [
-  { icon: Truck, text: 'Free Shipping on Orders Over KSh 50' },
-  { icon: Sparkles, text: 'New Arrivals Added Daily' },
-  { icon: Headphones, text: '24/7 Customer Support' },
-  { icon: Zap, text: 'Flash Deals — Up to 60% Off' },
-];
+const ANNOUNCEMENT_ITEMS = [
+  { label: '0717502292', href: 'tel:+254717502292' },
+  { label: MPESA_TILL_NUMBER ? `Till number: ${MPESA_TILL_NUMBER}` : 'Till number' },
+  { label: 'Order tracking', href: '/track-order' },
+] as const;
+
+const FALLBACK_LINKS = [
+  { href: '/products', label: 'Shop all' },
+  { href: '/shop/categories', label: 'Categories' },
+  { href: '/shop/brands', label: 'Brands' },
+  { href: '/track-order', label: 'Track order' },
+] as const;
+
+const CATEGORY_FALLBACK_LINKS = [
+  { href: '/shop/categories/displays', label: 'Displays' },
+  { href: '/shop/categories/workspace', label: 'Workspace' },
+  { href: '/shop/categories/accessories', label: 'Accessories' },
+  { href: '/shop/categories/complete-setups', label: 'Complete setups' },
+] as const;
+
+const DESKTOP_ACTION =
+  'inline-flex min-h-11 items-center justify-center px-2 text-[11px] font-medium uppercase tracking-[0.14em] text-black transition-opacity hover:opacity-55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black';
+
+const MOBILE_ACTION =
+  'relative inline-flex size-11 items-center justify-center text-black transition-opacity hover:opacity-55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black';
+
+function CartQuantity({ count }: { count?: number }) {
+  if (!count || count < 1) {
+    return null;
+  }
+
+  return (
+    <span className="absolute right-0 top-0 text-[9px] font-semibold leading-none text-black">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
 
 export function Navbar() {
+  const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { data: categoriesData } = useCategories({});
   const { data: cart, error: _cartError } = useCart();
-  const navCategories = (categoriesData?.content ?? []).filter(
-    (cat: Category) => cat.active && cat.level === 0
-  );
+  const updateCartItem = useUpdateCartItem();
+  const removeCartItem = useRemoveFromCart();
+  const { data: categoryTree } = useCategoryTree(true);
   const pathname = usePathname();
-
-  const mounted = true;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isPromoVisible, setIsPromoVisible] = useState(true);
-  const megaMenuRef = useRef<HTMLDivElement>(null);
-  const megaMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleScroll = useCallback(() => {
-    setIsScrolled(window.scrollY > 40);
-  }, []);
+  const [isCartPreviewOpen, setIsCartPreviewOpen] = useState(false);
+  const cartPreviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
-
-  useEffect(() => {
-    const onClickOutside = (e: MouseEvent) => {
-      if (megaMenuRef.current && !megaMenuRef.current.contains(e.target as Node)) {
-        setIsMegaMenuOpen(false);
-      }
-    };
-    const onEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsMegaMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    document.addEventListener('keydown', onEscape);
-    return () => {
-      document.removeEventListener('mousedown', onClickOutside);
-      document.removeEventListener('keydown', onEscape);
-    };
-  }, []);
-
-  const handleMegaMenuEnter = () => {
-    if (megaMenuTimeoutRef.current) {
-      clearTimeout(megaMenuTimeoutRef.current);
+    if (!isAuthenticated) {
+      return;
     }
-    setIsMegaMenuOpen(true);
-  };
-  const handleMegaMenuLeave = () => {
-    megaMenuTimeoutRef.current = setTimeout(() => setIsMegaMenuOpen(false), 200);
+
+    void Promise.allSettled([claimGuestOrders(), mergeGuestCart()]).then((results) => {
+      const claimed = results[0].status === 'fulfilled' ? results[0].value : 0;
+      const merged = results[1].status === 'fulfilled' ? results[1].value : false;
+
+      if (claimed > 0) {
+        void queryClient.invalidateQueries({ queryKey: ['orders'] });
+      }
+      if (merged) {
+        void queryClient.invalidateQueries({ queryKey: cartKeys.all });
+      }
+    });
+  }, [isAuthenticated, queryClient]);
+
+  const showCartPreview = () => {
+    if (cartPreviewTimer.current) {
+      clearTimeout(cartPreviewTimer.current);
+    }
+    setIsCartPreviewOpen(true);
   };
 
-  const isActive = (href: string) => pathname === href;
+  const hideCartPreview = () => {
+    cartPreviewTimer.current = setTimeout(() => setIsCartPreviewOpen(false), 160);
+  };
+
+  const openCart = () => {
+    setIsCartPreviewOpen(false);
+    setIsCartOpen(true);
+  };
 
   const isAdminUser =
-    mounted &&
     isAuthenticated &&
-    user?.roles.some((r) => [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(r));
+    user?.roles.some((role) => [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(role));
+  const loadedCategoryLinks = (categoryTree ?? []).slice(0, 6).map((category) => ({
+    href: `/shop/categories/${encodeURIComponent(category.slug)}`,
+    label: category.name,
+  }));
+  const categoryLinks = loadedCategoryLinks.length ? loadedCategoryLinks : CATEGORY_FALLBACK_LINKS;
+  const primaryLinks =
+    categoryLinks.length > 0 ? [...categoryLinks, ...FALLBACK_LINKS] : FALLBACK_LINKS;
 
-  if (pathname.startsWith('/admin')) {
+  if (
+    pathname.startsWith('/admin') ||
+    (pathname.startsWith('/auth/') && pathname !== '/auth/profile')
+  ) {
     return null;
   }
 
   return (
     <>
-      <header
-        className={`sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}
-      >
-        {/* ── TIER 1 — Promo Ticker ── */}
-        <div
-          className={`bg-accent duration-400 overflow-hidden transition-all ${
-            isPromoVisible ? 'max-h-9 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="relative flex items-center justify-center">
-            <button
-              aria-label="Dismiss"
-              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 text-white/50 transition-colors hover:text-white"
-              onClick={() => setIsPromoVisible(false)}
-            >
-              <X size={13} />
-            </button>
-            <div className="animate-ticker flex whitespace-nowrap py-2">
-              {[...PROMO_MESSAGES, ...PROMO_MESSAGES].map((promo, i) => {
-                const Icon = promo.icon;
+      <header className="relative z-40 bg-white text-black">
+        <div className="h-10 bg-[#1b1b1b] text-white lg:h-[52px]">
+          <div className="mx-auto grid h-full max-w-[1920px] grid-cols-3 items-stretch px-2 text-center text-[8px] font-semibold uppercase tracking-[0.08em] sm:px-6 sm:text-[9px] sm:tracking-[0.12em] lg:px-16 lg:text-[11px] lg:tracking-[0.17em]">
+            {ANNOUNCEMENT_ITEMS.map((item, index) => {
+              const className = `flex min-w-0 items-center justify-center px-1.5 transition-colors hover:text-white/70 sm:px-3 ${index > 0 ? 'border-l border-white/15' : ''}`;
+
+              if ('href' in item && item.href.startsWith('/')) {
                 return (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-2 px-8 text-[11px] font-medium tracking-wide text-white/90"
-                  >
-                    <Icon className="text-secondary" size={12} />
-                    {promo.text}
-                    <span className="ml-6 text-white/20">•</span>
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* ── TIER 2 — Main Bar ── */}
-        <div
-          className={`border-primary-light/15 bg-primary-dark border-b transition-all duration-300 ${isScrolled ? 'py-2' : 'py-3'}`}
-        >
-          <div className="container mx-auto px-4">
-            {/* Desktop */}
-            <div className="hidden items-center gap-6 md:flex">
-              {/* Logo */}
-              <Link
-                className="shrink-0 transition-transform duration-200 hover:scale-[1.02]"
-                href="/"
-              >
-                <Image
-                  priority
-                  alt="PickNQuicks"
-                  className={`object-contain transition-all duration-300 ${isScrolled ? 'h-8 w-auto' : 'h-10 w-auto'}`}
-                  height={40}
-                  src="/mylogo.png"
-                  width={120}
-                />
-              </Link>
-
-              {/* Search */}
-              <button
-                className="border-secondary/15 bg-primary-light/20 text-secondary/45 hover:border-secondary/30 hover:text-secondary/60 flex max-w-xl flex-1 items-center gap-3 rounded-lg border px-4 py-2 text-sm transition-colors"
-                onClick={() => setIsSearchOpen(true)}
-              >
-                <Search size={16} />
-                <span className="flex-1 text-left">Search products, brands...</span>
-                <kbd className="text-secondary/25 hidden text-[10px] lg:inline">⌘K</kbd>
-              </button>
-
-              {/* Action icons */}
-              <div className="flex shrink-0 items-center gap-1">
-                <Link
-                  aria-label="Wishlist"
-                  className="text-secondary/50 hover:bg-primary-light/20 hover:text-secondary rounded-lg p-2 transition-colors"
-                  href="/wishlist"
-                >
-                  <Heart size={20} />
-                </Link>
-
-                <button
-                  aria-label="Cart"
-                  className="text-secondary/50 hover:bg-primary-light/20 hover:text-secondary relative rounded-lg p-2 transition-colors"
-                  onClick={() => setIsCartOpen(true)}
-                >
-                  <ShoppingBag size={20} />
-                  {cart?.totalItems && cart.totalItems > 0 ? (
-                    <span className="h-4.5 w-4.5 bg-highlight animate-badge-bounce absolute -right-0.5 -top-0.5 flex items-center justify-center rounded-full text-[10px] font-bold text-white">
-                      {cart.totalItems > 99 ? '99+' : cart.totalItems}
-                    </span>
-                  ) : null}
-                </button>
-
-                {mounted && isAuthenticated && user ? (
-                  <Link
-                    aria-label="Orders"
-                    className="text-secondary/50 hover:bg-primary-light/20 hover:text-secondary rounded-lg p-2 transition-colors"
-                    href="/orders"
-                  >
-                    <FileText size={20} />
+                  <Link key={item.label} className={className} href={item.href}>
+                    <span className="truncate">{item.label}</span>
                   </Link>
-                ) : null}
+                );
+              }
 
-                <div className="bg-secondary/10 mx-1.5 h-5 w-px" />
+              if ('href' in item) {
+                return (
+                  <a key={item.label} className={className} href={item.href}>
+                    <span className="truncate">{item.label}</span>
+                  </a>
+                );
+              }
 
-                {!mounted || isLoading ? (
-                  <div className="text-secondary/50 rounded-lg p-2">
-                    <User className="animate-pulse" size={20} />
-                  </div>
-                ) : isAuthenticated && user ? (
-                  <UserMenu />
-                ) : (
-                  <button
-                    className="border-secondary/20 text-secondary hover:bg-secondary hover:text-primary-dark flex items-center gap-2 rounded-lg border px-3.5 py-1.5 text-sm font-semibold transition-colors"
-                    onClick={() => setIsAuthModalOpen(true)}
-                  >
-                    <User size={15} />
-                    Sign In
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Mobile */}
-            <div className="flex h-12 items-center justify-between md:hidden">
-              <button
-                aria-label="Menu"
-                className="text-secondary/60 hover:text-secondary rounded-lg p-2 transition-colors"
-                onClick={() => setIsMobileMenuOpen(true)}
-              >
-                <Menu size={22} />
-              </button>
-              <Link href="/">
-                <Image
-                  priority
-                  alt="PickNQuicks"
-                  className="h-8 w-auto object-contain"
-                  height={32}
-                  src="/mylogo.png"
-                  width={80}
-                />
-              </Link>
-              <div className="flex items-center gap-0.5">
-                <button
-                  aria-label="Search"
-                  className="text-secondary/60 hover:text-secondary rounded-lg p-2 transition-colors"
-                  onClick={() => setIsSearchOpen(true)}
-                >
-                  <Search size={20} />
-                </button>
-                <button
-                  aria-label="Cart"
-                  className="text-secondary/60 hover:text-secondary relative rounded-lg p-2"
-                  onClick={() => setIsCartOpen(true)}
-                >
-                  <ShoppingBag size={20} />
-                  {cart?.totalItems && cart.totalItems > 0 ? (
-                    <span className="bg-highlight absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white">
-                      {cart.totalItems > 99 ? '99+' : cart.totalItems}
-                    </span>
-                  ) : null}
-                </button>
-                {!mounted || isLoading ? (
-                  <div className="text-secondary/60 rounded-lg p-2">
-                    <User className="animate-pulse" size={20} />
-                  </div>
-                ) : isAuthenticated && user ? (
-                  <UserMenu />
-                ) : (
-                  <button
-                    aria-label="Sign in"
-                    className="text-secondary/60 hover:text-secondary rounded-lg p-2 transition-colors"
-                    onClick={() => setIsAuthModalOpen(true)}
-                  >
-                    <User size={20} />
-                  </button>
-                )}
-              </div>
-            </div>
+              return (
+                <span key={item.label} className={className}>
+                  <span className="truncate">{item.label}</span>
+                </span>
+              );
+            })}
           </div>
         </div>
 
-        {/* ── TIER 3 — Nav Row ── */}
-        <div
-          className={`border-primary-light/10 bg-primary-dark/95 hidden border-b backdrop-blur-sm md:block`}
-        >
-          <div className="container mx-auto px-4">
-            <nav className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Link
-                  className={`nav-underline px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive('/')
-                      ? 'text-secondary active'
-                      : 'text-secondary/55 hover:text-secondary'
-                  }`}
-                  href="/"
-                >
-                  Home
-                </Link>
-                <Link
-                  className={`nav-underline px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive('/products')
-                      ? 'text-secondary active'
-                      : 'text-secondary/55 hover:text-secondary'
-                  }`}
-                  href="/products"
-                >
-                  Shop
-                </Link>
+        <div className="border-b border-black/15 bg-white">
+          <div className="mx-auto hidden h-[98px] max-w-[1920px] grid-cols-[minmax(300px,1fr)_minmax(300px,1.15fr)_auto] items-center gap-12 px-16 lg:grid">
+            <Link
+              aria-label="PickNQuicks home"
+              className="inline-flex min-h-11 w-fit flex-col justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+              href="/"
+            >
+              <BrandLogo
+                markClassName="size-11"
+                subtitle="Tech & Workspace Essentials"
+                wordmarkClassName="text-[29px]"
+              />
+            </Link>
 
-                {/* Categories */}
-                <div
-                  ref={megaMenuRef}
-                  className="relative"
-                  onMouseEnter={handleMegaMenuEnter}
-                  onMouseLeave={handleMegaMenuLeave}
-                >
-                  <button
-                    className={`nav-underline flex items-center gap-1 px-4 py-2.5 text-sm font-semibold transition-colors ${
-                      isMegaMenuOpen || pathname.startsWith('/categories')
-                        ? 'text-secondary active'
-                        : 'text-secondary/55 hover:text-secondary'
-                    }`}
-                    onClick={() => setIsMegaMenuOpen((p) => !p)}
-                  >
-                    Categories
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
+            <button
+              aria-expanded={isSearchOpen}
+              aria-haspopup="dialog"
+              className="flex min-h-12 w-full max-w-[460px] items-center border border-black/20 px-4 text-left text-[13px] font-normal tracking-[0.01em] text-black/45 transition-colors hover:border-black hover:text-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+            >
+              <Search aria-hidden="true" className="mr-3 text-black" size={17} strokeWidth={1.5} />
+              Search monitors, desks and workspace tools
+            </button>
 
-                  {/* ── MEGA MENU ── */}
-                  {isMegaMenuOpen && navCategories && navCategories.length > 0 ? (
-                    <div className="absolute -left-2 top-full z-50 pt-1">
-                      <div className="animate-float-in border-primary-light/15 bg-primary-dark w-[640px] rounded-xl border shadow-2xl">
-                        {/* Header */}
-                        <div className="border-primary-light/10 flex items-center justify-between border-b px-5 py-3">
-                          <span className="text-secondary text-sm font-bold">Categories</span>
-                          <Link
-                            className="text-secondary/40 hover:text-secondary text-xs font-medium transition-colors"
-                            href="/categories"
-                            onClick={() => setIsMegaMenuOpen(false)}
-                          >
-                            View all →
-                          </Link>
+            <nav aria-label="Shopping actions" className="flex items-center gap-5">
+              {isLoading ? (
+                <span className={DESKTOP_ACTION}>Account</span>
+              ) : isAuthenticated ? (
+                <Link className={DESKTOP_ACTION} href="/auth/profile">
+                  Account
+                </Link>
+              ) : (
+                <button
+                  className={DESKTOP_ACTION}
+                  type="button"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
+                  Account
+                </button>
+              )}
+
+              <div
+                className="relative"
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    hideCartPreview();
+                  }
+                }}
+                onFocus={showCartPreview}
+                onMouseEnter={showCartPreview}
+                onMouseLeave={hideCartPreview}
+              >
+                <button
+                  aria-expanded={isCartOpen || isCartPreviewOpen}
+                  aria-haspopup="dialog"
+                  aria-label={`Open cart${cart?.totalItems ? `, ${cart.totalItems} items` : ''}`}
+                  className={[DESKTOP_ACTION, 'relative gap-2'].join(' ')}
+                  type="button"
+                  onClick={openCart}
+                >
+                  <ShoppingBag aria-hidden="true" size={18} strokeWidth={1.5} />
+                  <span>Cart{cart?.totalItems ? ` (${cart.totalItems})` : ''}</span>
+                </button>
+
+                {isCartPreviewOpen ? (
+                  <div className="absolute right-0 top-full z-50 w-[390px] pt-3">
+                    <div className="border border-black/15 bg-white shadow-[0_18px_50px_rgba(0,0,0,0.14)]">
+                      <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em]">
+                          Your cart
+                        </p>
+                        <span className="text-xs text-black/50">
+                          {cart?.totalItems ?? 0} {(cart?.totalItems ?? 0) === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
+
+                      {!cart || cart.items.length === 0 ? (
+                        <div className="px-6 py-10 text-center">
+                          <ShoppingBag
+                            aria-hidden="true"
+                            className="mx-auto text-black/20"
+                            size={32}
+                            strokeWidth={1.25}
+                          />
+                          <p className="mt-4 text-sm font-medium">Your cart is empty</p>
+                          <p className="mt-1 text-xs leading-5 text-black/50">
+                            Add workspace essentials to see them here.
+                          </p>
                         </div>
+                      ) : (
+                        <>
+                          <div className="px-5">
+                            {cart.items.slice(0, 3).map((item) => {
+                              const imageUrl = resolveMediaUrl(item.productImageUrl);
 
-                        {/* Two-column layout */}
-                        <div className="flex">
-                          {/* Left: category list */}
-                          <div className="border-primary-light/10 custom-scrollbar max-h-[380px] w-[200px] shrink-0 overflow-y-auto border-r py-2">
-                            {navCategories.slice(0, 10).map((category: Category) => {
-                              const currentId = activeCategoryId || navCategories[0]?.id;
-                              const isActiveCat = currentId === category.id;
+                              const isUpdating =
+                                updateCartItem.isPending &&
+                                updateCartItem.variables?.cartItemId === item.id;
+                              const isRemoving =
+                                removeCartItem.isPending && removeCartItem.variables === item.id;
+                              const isCartMutating =
+                                updateCartItem.isPending || removeCartItem.isPending;
+
                               return (
-                                <button
-                                  key={category.id}
-                                  className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-                                    isActiveCat
-                                      ? 'bg-primary-light/15 text-secondary'
-                                      : 'text-secondary/55 hover:bg-primary-light/8 hover:text-secondary/80'
-                                  }`}
-                                  onClick={() => {
-                                    setIsMegaMenuOpen(false);
-                                    window.location.href = `/categories?slug=${encodeURIComponent(category.slug)}`;
-                                  }}
-                                  onMouseEnter={() => setActiveCategoryId(category.id)}
+                                <article
+                                  key={item.id}
+                                  className="grid grid-cols-[64px_minmax(0,1fr)] gap-3 border-b border-black/10 py-4 last:border-b-0"
                                 >
-                                  {category.iconUrl ? (
-                                    <Image
-                                      alt={category.name}
-                                      className={`h-4 w-4 object-contain ${isActiveCat ? 'opacity-100' : 'opacity-40'}`}
-                                      height={16}
-                                      src={resolveMediaUrl(category.iconUrl) || category.iconUrl}
-                                      width={16}
-                                    />
-                                  ) : (
-                                    <Grid
-                                      className={`${isActiveCat ? 'text-secondary' : 'text-secondary/30'}`}
-                                      size={14}
-                                    />
-                                  )}
-                                  <span className="font-medium">{category.name}</span>
-                                  {isActiveCat ? (
-                                    <ChevronDown className="text-secondary/40 ml-auto h-3 w-3 -rotate-90" />
-                                  ) : null}
-                                </button>
+                                  <Link
+                                    aria-label={`View ${item.productName}`}
+                                    className="relative aspect-square overflow-hidden bg-[#f2f1ee]"
+                                    href={`/products/${item.productSlug}`}
+                                    onClick={() => setIsCartPreviewOpen(false)}
+                                  >
+                                    {imageUrl ? (
+                                      <Image
+                                        fill
+                                        alt=""
+                                        className="object-cover"
+                                        sizes="64px"
+                                        src={imageUrl}
+                                      />
+                                    ) : null}
+                                  </Link>
+
+                                  <div className="min-w-0">
+                                    <div className="flex items-start justify-between gap-4">
+                                      <Link
+                                        className="line-clamp-2 text-xs font-medium leading-5 hover:underline"
+                                        href={`/products/${item.productSlug}`}
+                                        onClick={() => setIsCartPreviewOpen(false)}
+                                      >
+                                        {item.productName}
+                                      </Link>
+                                      <span className="shrink-0 text-xs font-semibold">
+                                        {formatPriceKsh(item.totalWithTax)}
+                                      </span>
+                                    </div>
+
+                                    <div className="mt-2.5 flex items-center justify-between gap-3">
+                                      <div className="flex h-8 items-center rounded-full border border-black/20">
+                                        <button
+                                          aria-label={`Decrease ${item.productName} quantity`}
+                                          className="flex size-8 items-center justify-center rounded-l-full transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
+                                          disabled={isCartMutating || item.quantity <= 1}
+                                          type="button"
+                                          onClick={() =>
+                                            updateCartItem.mutate({
+                                              cartItemId: item.id,
+                                              quantity: item.quantity - 1,
+                                            })
+                                          }
+                                        >
+                                          <Minus aria-hidden="true" size={12} strokeWidth={1.75} />
+                                        </button>
+                                        <span
+                                          aria-live="polite"
+                                          className="flex min-w-7 items-center justify-center text-[11px] font-semibold"
+                                        >
+                                          {isUpdating ? (
+                                            <Loader2
+                                              aria-label="Updating quantity"
+                                              className="animate-spin"
+                                              size={12}
+                                            />
+                                          ) : (
+                                            item.quantity
+                                          )}
+                                        </span>
+                                        <button
+                                          aria-label={`Increase ${item.productName} quantity`}
+                                          className="flex size-8 items-center justify-center rounded-r-full transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
+                                          disabled={
+                                            isCartMutating ||
+                                            !item.inStock ||
+                                            item.quantity >= item.availableStock
+                                          }
+                                          type="button"
+                                          onClick={() =>
+                                            updateCartItem.mutate({
+                                              cartItemId: item.id,
+                                              quantity: item.quantity + 1,
+                                            })
+                                          }
+                                        >
+                                          <Plus aria-hidden="true" size={12} strokeWidth={1.75} />
+                                        </button>
+                                      </div>
+                                      <button
+                                        aria-label={`Remove ${item.productName} from cart`}
+                                        className="inline-flex min-h-8 items-center gap-1.5 text-[11px] text-black/50 transition-colors hover:text-black disabled:cursor-not-allowed disabled:opacity-30"
+                                        disabled={isCartMutating}
+                                        type="button"
+                                        onClick={() => removeCartItem.mutate(item.id)}
+                                      >
+                                        {isRemoving ? (
+                                          <Loader2
+                                            aria-hidden="true"
+                                            className="animate-spin"
+                                            size={13}
+                                          />
+                                        ) : (
+                                          <Trash2 aria-hidden="true" size={13} strokeWidth={1.5} />
+                                        )}
+                                        Remove
+                                      </button>
+                                    </div>
+                                  </div>
+                                </article>
                               );
                             })}
                           </div>
 
-                          {/* Right: subcategories */}
-                          <div className="flex-1 p-5">
-                            {(() => {
-                              const currentId = activeCategoryId || navCategories[0]?.id;
-                              const current = navCategories.find(
-                                (c: Category) => c.id === currentId
-                              );
-                              if (!current) {
-                                return null;
-                              }
+                          {cart.items.length > 3 ? (
+                            <p className="border-t border-black/10 px-5 py-3 text-center text-[11px] text-black/50">
+                              +{cart.items.length - 3} more{' '}
+                              {cart.items.length - 3 === 1 ? 'item' : 'items'}
+                            </p>
+                          ) : null}
 
-                              return (
-                                <div>
-                                  <div className="mb-4 flex items-center justify-between">
-                                    <h4 className="text-secondary text-sm font-bold">
-                                      {current.name}
-                                    </h4>
-                                    <Link
-                                      className="bg-primary-light/15 text-secondary/60 hover:bg-primary-light/25 hover:text-secondary rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors"
-                                      href={`/categories?slug=${encodeURIComponent(current.slug)}`}
-                                      onClick={() => setIsMegaMenuOpen(false)}
-                                    >
-                                      Shop {current.name}
-                                    </Link>
-                                  </div>
-
-                                  {current.children && current.children.length > 0 ? (
-                                    <div className="grid grid-cols-2 gap-1">
-                                      {current.children.map((child: Category) => (
-                                        <Link
-                                          key={child.id}
-                                          className="text-secondary/55 hover:bg-primary-light/10 hover:text-secondary group flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
-                                          href={`/categories?slug=${encodeURIComponent(child.slug)}`}
-                                          onClick={() => setIsMegaMenuOpen(false)}
-                                        >
-                                          <span className="bg-secondary/20 group-hover:bg-highlight h-1 w-1 rounded-full transition-colors" />
-                                          {child.name}
-                                        </Link>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="text-secondary/30 text-sm">
-                                      No subcategories yet.
-                                    </p>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                          <div className="border-t border-black/10 p-5">
+                            <div className="mb-4 flex items-center justify-between text-sm">
+                              <span className="text-black/55">Subtotal</span>
+                              <span className="font-semibold">{formatPriceKsh(cart.subtotal)}</span>
+                            </div>
+                            <Link
+                              className="flex min-h-12 items-center justify-center bg-black text-xs font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#292621]"
+                              href="/cart"
+                              onClick={() => setIsCartPreviewOpen(false)}
+                            >
+                              View cart
+                            </Link>
                           </div>
-                        </div>
-                      </div>
+                        </>
+                      )}
                     </div>
-                  ) : null}
-                </div>
-
-                {/* Deals */}
-                <Link
-                  className={`nav-underline flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive('/deals')
-                      ? 'text-secondary active'
-                      : 'text-secondary/55 hover:text-secondary'
-                  }`}
-                  href="/deals"
-                >
-                  Deals
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-dot-pulse bg-highlight absolute inline-flex h-full w-full rounded-full" />
-                    <span className="bg-highlight relative inline-flex h-1.5 w-1.5 rounded-full" />
-                  </span>
-                </Link>
-
-                {/* Admin */}
-                {isAdminUser ? (
-                  <Link
-                    className="bg-accent/15 text-accent-light hover:bg-accent/25 ml-1 flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-colors"
-                    href="/admin"
-                  >
-                    <Shield size={12} />
-                    Admin
-                  </Link>
+                  </div>
                 ) : null}
               </div>
-
-              <span className="text-secondary/20 text-[11px] font-medium tracking-wide">
-                Premium Tech Solutions
-              </span>
             </nav>
           </div>
+
+          <div className="grid h-16 grid-cols-[44px_minmax(0,1fr)_auto] items-center px-3 lg:hidden">
+            <button
+              aria-expanded={isMobileMenuOpen}
+              aria-label="Open menu"
+              className={MOBILE_ACTION}
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu aria-hidden="true" size={21} strokeWidth={1.5} />
+            </button>
+
+            <Link
+              aria-label="PickNQuicks home"
+              className="mx-auto inline-flex min-h-11 items-center px-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+              href="/"
+            >
+              <BrandLogo markClassName="size-8" wordmarkClassName="text-[20px]" />
+            </Link>
+
+            <div className="flex items-center">
+              <button
+                aria-expanded={isSearchOpen}
+                aria-haspopup="dialog"
+                aria-label="Search"
+                className={MOBILE_ACTION}
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <Search aria-hidden="true" size={19} strokeWidth={1.5} />
+              </button>
+              <button
+                aria-label="Open cart"
+                className={MOBILE_ACTION}
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+              >
+                <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.5} />
+                <CartQuantity count={cart?.totalItems} />
+              </button>
+              {isAuthenticated ? (
+                <Link aria-label="Account" className={MOBILE_ACTION} href="/auth/profile">
+                  <User aria-hidden="true" size={19} strokeWidth={1.5} />
+                </Link>
+              ) : (
+                <button
+                  aria-label="Account"
+                  className={MOBILE_ACTION}
+                  type="button"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
+                  <User aria-hidden="true" size={19} strokeWidth={1.5} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <nav
+          aria-label="Product categories"
+          className="no-scrollbar flex h-12 snap-x items-stretch gap-1 overflow-x-auto border-b border-black/15 bg-white px-3 lg:hidden"
+        >
+          <Link
+            aria-current={pathname === '/products' ? 'page' : undefined}
+            className={`flex min-w-max snap-start items-center border-b-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors ${pathname === '/products' ? 'border-black text-black' : 'border-transparent text-black/50 hover:text-black'}`}
+            href="/products"
+          >
+            Shop all
+          </Link>
+          {categoryLinks.map((link) => {
+            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            return (
+              <Link
+                key={`mobile-${link.href}`}
+                aria-current={active ? 'page' : undefined}
+                className={`flex min-w-max snap-start items-center border-b-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors ${active ? 'border-black text-black' : 'border-transparent text-black/50 hover:text-black'}`}
+                href={link.href}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="hidden h-[68px] border-b border-black/15 bg-white lg:block">
+          <nav
+            aria-label="Primary navigation"
+            className="mx-auto grid h-full max-w-[1920px] auto-cols-[minmax(112px,1fr)] grid-flow-col items-stretch overflow-x-auto px-16"
+          >
+            {primaryLinks.map((link) => {
+              const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+
+              return (
+                <Link
+                  key={link.label + link.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={[
+                    'flex min-h-11 items-center justify-center border-b px-3 text-center text-[10px] font-medium uppercase tracking-[0.13em] text-black transition-opacity hover:opacity-55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black',
+                    active ? 'border-black' : 'border-transparent',
+                  ].join(' ')}
+                  href={link.href}
+                >
+                  <span className="truncate">{link.label}</span>
+                </Link>
+              );
+            })}
+
+            {isAdminUser ? (
+              <Link
+                className="flex min-h-11 items-center justify-center border-b border-transparent px-3 text-[10px] font-medium uppercase tracking-[0.13em] text-black transition-opacity hover:opacity-55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black"
+                href="/admin"
+              >
+                Admin
+              </Link>
+            ) : null}
+          </nav>
         </div>
       </header>
 
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        onSearch={() => setIsSearchOpen(true)}
+        onSignIn={() => setIsAuthModalOpen(true)}
+      />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

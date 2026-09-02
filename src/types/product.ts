@@ -8,9 +8,11 @@ export interface Product {
   price: number;
   salePrice?: number;
   effectivePrice: number;
+  taxRate: number;
   discountPercentage?: number;
   categoryId: string;
   categoryName?: string;
+  categorySlug?: string;
   brandId?: string;
   brandName?: string;
   stockQuantity: number;
@@ -20,6 +22,10 @@ export interface Product {
   dimensions?: string;
   active: boolean;
   featured: boolean;
+  isBundle: boolean;
+  bundleComponents: BundleComponent[];
+  bundleOriginalPrice?: number;
+  bundleSavings?: number;
   isDigital: boolean;
   requiresShipping: boolean;
   averageRating?: number;
@@ -33,6 +39,15 @@ export interface Product {
   metaKeywords?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BundleComponent {
+  id: string;
+  name: string;
+  slug: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
 }
 
 export interface ProductImage {
@@ -104,7 +119,7 @@ export interface ProductFilters {
   brandId?: string;
   minPrice?: number;
   maxPrice?: number;
-  inStock?: boolean;
+  search?: string;
 }
 
 export interface UpdateStockInput {

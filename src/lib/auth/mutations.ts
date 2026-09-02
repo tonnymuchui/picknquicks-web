@@ -2,265 +2,193 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-import {
-  type AuthResponse,
-  type LoginRequest,
-  type RegisterRequest,
-  type User,
-  UserRole,
-  type ApiResponse as AuthApiResponse,
-} from '@/types/auth';
-
+import { cartKeys } from '@/lib/cart/cart.queries';
+import { mergeGuestCart } from '@/lib/cart/merge-guest-cart';
+import { claimGuestOrders } from '@/lib/order/claim-guest-orders';
+import { createClient } from '@/lib/supabase/client';
 
 import { authKeys } from './queries';
-import { apiClient } from '../api/client';
-import { tokenManager } from '../utils/token';
 
-import type { ApiResponse } from '@/types/common';
-
-function normalizeUserPayload(payload: unknown): User {
-  const data = payload as Record<string, unknown> | User;
-  if (typeof data === 'object' && data !== null && 'data' in data) {
-    return (data as Record<string, unknown>).data as User;
-  }
-  return data as User;
-}
-
-function normalizeApiResponse(payload: unknown): AuthApiResponse {
-  const data = payload as Record<string, unknown> | AuthApiResponse;
-  if (typeof data === 'object' && data !== null && 'data' in data) {
-    return (data as Record<string, unknown>).data as AuthApiResponse;
-  }
-  return data as AuthApiResponse;
-}
+import type { LoginRequest, RegisterRequest, User } from '@/types/auth';
 
 export function useRegister() {
   const router = useRouter();
-
   return useMutation({
-    mutationFn: async (userData: RegisterRequest): Promise<AuthApiResponse> => {
-      const { data } = await apiClient.post('/auth/register', userData);
-      return data;
+    mutationFn: async (input: RegisterRequest) => {
+      const { error } = await createClient().auth.signUp({
+        email: input.email,
+        password: input.password,
+        options: {
+          data: { first_name: input.firstName, last_name: input.lastName, phone: input.phone },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      return { message: 'Check your email to confirm your account.' };
     },
     onSuccess: (data) => {
-      toast.success(data.message || 'Registration successful Check your email.');
-      router.push('/verify-email');
+      toast.success(data.message);
+      router.push('/auth/verify-email');
     },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Registration failed';
-      toast.error(message);
-    },
+    onError: (error: Error) => toast.error(error.message || 'Registration failed'),
   });
 }
-
 export function useLogin() {
   const router = useRouter();
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (credentials: LoginRequest): Promise<AuthResponse> => {
-      const { data } = await apiClient.post('/auth/login', credentials);
-      return data;
-    },
-    onSuccess: (data) => {
-      tokenManager.setTokens(data.accessToken, data.refreshToken);
-      queryClient.setQueryData(authKeys.me(), data.user);
-
-      const isAdmin = data.user.roles.includes(UserRole.ADMIN);
-      const isStaff = data.user.roles.includes(UserRole.STAFF);
-      const isManager = data.user.roles.includes(UserRole.MANAGER);
-
-      if (isAdmin || isStaff || isManager) {
-        toast.success(`Welcome back, ${data.user.firstName}!`);
-        router.replace('/admin/dashboard');
-      } else {
-        toast.success('Welcome back!');
-        router.replace('/');
+    mutationFn: async (input: LoginRequest) => {
+      const { error } = await createClient().auth.signInWithPassword(input);
+      if (error) {
+        throw error;
       }
     },
-
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Login failed';
-      toast.error(message);
+    onSuccess: async () => {
+      await Promise.allSettled([claimGuestOrders(), mergeGuestCart()]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: authKeys.all }),
+        queryClient.invalidateQueries({ queryKey: cartKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ['orders'] }),
+      ]);
+      toast.success('Welcome back!');
+      router.replace('/');
+      router.refresh();
     },
+    onError: (error: Error) => toast.error(error.message || 'Login failed'),
   });
 }
 export function useLogout() {
   const router = useRouter();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async () => {
-      await apiClient.post('/auth/logout');
+      const { error } = await createClient().auth.signOut();
+      if (error) {
+        throw error;
+      }
     },
-
     onSettled: () => {
-      tokenManager.clearTokens();
       queryClient.clear();
-      toast.success('Logged out successfully');
-      router.push('/');
+      toast.success('Signed out');
+      router.replace('/');
+      router.refresh();
     },
   });
 }
-
-export function useVerifyEmail() {
-  const router = useRouter();
-
-  return useMutation({
-    mutationFn: async (token: string): Promise<AuthApiResponse> => {
-      const { data } = await apiClient.get(`/auth/verify-email?token=${token}`);
-      return data;
-    },
-
-    onSuccess: (data) => {
-      toast.success(data.message);
-      router.push('/login');
-    },
-
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Verification failed';
-      toast.error(message);
-    },
-  });
-}
-
 export function useResendVerification() {
   return useMutation({
-    mutationFn: async (email: string): Promise<AuthApiResponse> => {
-      const { data } = await apiClient.post(`/auth/resend-verification?email=${email}`);
-      return data;
+    mutationFn: async (email: string) => {
+      const { error } = await createClient().auth.resend({ type: 'signup', email });
+      if (error) {
+        throw error;
+      }
+      return { message: 'Verification email sent.' };
     },
-
+    onSuccess: (data) => toast.success(data.message),
+  });
+}
+export function useVerifyEmail() {
+  const router = useRouter();
+  return useMutation({
+    mutationFn: async (_token: string) => ({
+      message: 'Email verification is handled by the secure confirmation link.',
+    }),
     onSuccess: (data) => {
       toast.success(data.message);
+      router.push('/auth/login');
     },
   });
 }
-
 export function useForgotPassword() {
-  const router = useRouter();
-
   return useMutation({
-    mutationFn: async (email: string): Promise<AuthApiResponse> => {
-      const { data } = await apiClient.post('/auth/forgot-password', { email });
-      return data;
+    mutationFn: async (email: string) => {
+      const { error } = await createClient().auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+      });
+      if (error) {
+        throw error;
+      }
+      return { message: 'Password reset link sent.' };
     },
-
-    onSuccess: (data) => {
-      toast.success(data.message);
-      router.push('/');
-    },
+    onSuccess: (data) => toast.success(data.message),
   });
 }
-
 export function useResetPassword() {
-  const router = useRouter();
-
   return useMutation({
-    mutationFn: async (payload: {
-      token: string;
-      newPassword: string;
-      confirmPassword: string;
-    }): Promise<AuthApiResponse> => {
-      const { data } = await apiClient.post('/auth/reset-password', payload);
-      return data;
+    mutationFn: async (input: { newPassword: string }) => {
+      const { error } = await createClient().auth.updateUser({ password: input.newPassword });
+      if (error) {
+        throw error;
+      }
+      return { message: 'Password updated.' };
     },
-
-    onSuccess: (data) => {
-      toast.success(data.message);
-      router.push('/');
-    },
+    onSuccess: (data) => toast.success(data.message),
   });
 }
-
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (userData: FormData) => {
-      const { data } = await apiClient.patch('/auth/profile', userData);
-      return normalizeUserPayload(data);
+    mutationFn: async (form: FormData): Promise<User> => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Sign in required');
+      }
+      const patch = {
+        first_name: String(form.get('firstName') ?? ''),
+        last_name: String(form.get('lastName') ?? ''),
+        phone: String(form.get('phone') ?? '') || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from('profiles').update(patch).eq('id', user.id);
+      if (error) {
+        throw error;
+      }
+      await queryClient.invalidateQueries({ queryKey: authKeys.me() });
+      return queryClient.getQueryData(authKeys.me()) as User;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(authKeys.me(), data);
-      toast.success('Profile updated successfully');
-    },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Failed to update profile';
-      toast.error(message);
-    },
+    onSuccess: () => toast.success('Profile updated'),
+    onError: (error: Error) => toast.error(error.message),
   });
 }
-
 export function useUploadAvatar() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (file: File): Promise<User> => {
-      const formData = new FormData();
-      formData.append('avatarFile', file);
-
-      const { data } = await apiClient.post<ApiResponse<User>>('/auth/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      return data.data!;
+    mutationFn: async (file: File) => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Sign in required');
+      }
+      const path = `${user.id}/avatar-${Date.now()}.${file.name.split('.').pop()}`;
+      const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+      if (error) {
+        throw error;
+      }
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+      await supabase.from('profiles').update({ avatar_url: data.publicUrl }).eq('id', user.id);
+      await queryClient.invalidateQueries({ queryKey: authKeys.me() });
+      return queryClient.getQueryData(authKeys.me()) as User;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(authKeys.me(), data);
-      queryClient.invalidateQueries({ queryKey: authKeys.all });
-      toast.success('Avatar uploaded successfully');
-    },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Failed to upload avatar';
-      toast.error(message);
-    },
+    onSuccess: () => toast.success('Avatar uploaded'),
+    onError: (error: Error) => toast.error(error.message),
   });
 }
-
-export function useRemoveAvatar() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (): Promise<User> => {
-      const { data } = await apiClient.delete<ApiResponse<User>>('/auth/avatar');
-      return data.data!;
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(authKeys.me(), data);
-      queryClient.invalidateQueries({ queryKey: authKeys.all });
-      toast.success('Avatar removed successfully');
-    },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Failed to remove avatar';
-      toast.error(message);
-    },
-  });
-}
-
 export function useChangePassword() {
   return useMutation({
-    mutationFn: async (payload: {
-      currentPassword: string;
-      newPassword: string;
-      confirmPassword: string;
-    }) => {
-      const { data } = await apiClient.post('/auth/change-password', payload);
-      return normalizeApiResponse(data);
+    mutationFn: async (input: { newPassword: string }) => {
+      const { error } = await createClient().auth.updateUser({ password: input.newPassword });
+      if (error) {
+        throw error;
+      }
+      return { message: 'Password changed.' };
     },
-    onSuccess: (data) => {
-      toast.success(data.message || 'Password changed successfully');
-    },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Failed to change password';
-      toast.error(message);
-    },
+    onSuccess: (data) => toast.success(data.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 }

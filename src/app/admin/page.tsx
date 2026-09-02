@@ -20,14 +20,12 @@ export default function AdminPage() {
       return;
     }
 
-    const hasAdminRole = user.roles.some((role) =>
-      [UserRole.ADMIN, UserRole.MANAGER, UserRole.STAFF].includes(role)
-    );
-
-    if (hasAdminRole) {
+    if (user.roles.includes(UserRole.ADMIN)) {
       router.replace('/admin/dashboard');
+    } else if (user.roles.includes(UserRole.MANAGER) || user.roles.includes(UserRole.STAFF)) {
+      router.replace('/admin/products');
     } else if (user.roles.includes(UserRole.CUSTOMER)) {
-      router.replace('/shop');
+      router.replace('/products');
     } else {
       router.replace('/');
     }

@@ -33,12 +33,3 @@ export interface CartItem {
   priceChanged: boolean;
   currentPrice?: number;
 }
-
-export interface AddToCartInput {
-  productId: string;
-  quantity: number;
-}
-
-export interface UpdateCartItemInput {
-  quantity: number;
-}

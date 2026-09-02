@@ -1,121 +1,120 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { publicApiClient } from '@/lib/api/client';
-import { removeGuestToken } from '@/lib/utils/guest-token';
+import { apiClient } from '@/lib/api/client';
+import { getApiErrorMessage } from '@/lib/api/errors';
+import { getCurrentCartRequestConfig } from '@/lib/cart/cart-helpers';
+import { cartKeys } from '@/lib/cart/cart.queries';
 
-import { executeWithGuestTokenRetry, getCartRequestConfig } from './cart-helpers';
-import { cartKeys } from './cart.queries';
-
-import type { Cart, AddToCartInput, UpdateCartItemInput } from '@/types/cart';
+import type { Cart } from '@/types/cart';
 import type { ApiResponse } from '@/types/common';
 
-export function useAddToCart() {
+function requestConfig() {
+  return getCurrentCartRequestConfig();
+}
+
+function useCartMutationSuccess() {
   const queryClient = useQueryClient();
 
+  return (cart: Cart) => {
+    queryClient.setQueriesData({ queryKey: cartKeys.details() }, cart);
+  };
+}
+
+export function useAddToCart() {
+  const syncCart = useCartMutationSuccess();
+
   return useMutation({
-    mutationFn: (input: AddToCartInput) =>
-      executeWithGuestTokenRetry((guestToken) =>
-        publicApiClient
-          .post<ApiResponse<Cart>>('/cart/items', input, getCartRequestConfig(guestToken))
-          .then((res) => res.data.data!)
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.all });
+    mutationFn: async ({ productId, quantity }: { productId: string; quantity: number }) => {
+      const { data } = await apiClient.post<ApiResponse<Cart>>(
+        '/cart/items',
+        { productId, quantity },
+        requestConfig()
+      );
+
+      if (!data.data) {
+        throw new Error(data.message || 'Updated cart was not returned');
+      }
+
+      return data.data;
+    },
+    onSuccess: (cart) => {
+      syncCart(cart);
       toast.success('Added to cart');
     },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err?.response?.data?.message || 'Failed to add to cart');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to add item to cart'));
     },
   });
 }
 
 export function useUpdateCartItem() {
-  const queryClient = useQueryClient();
+  const syncCart = useCartMutationSuccess();
 
   return useMutation({
-    mutationFn: ({ cartItemId, input }: { cartItemId: string; input: UpdateCartItemInput }) =>
-      executeWithGuestTokenRetry((guestToken) =>
-        publicApiClient
-          .put<
-            ApiResponse<Cart>
-          >(`/cart/items/${cartItemId}`, input, getCartRequestConfig(guestToken))
-          .then((res) => res.data.data!)
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.all });
-      toast.success('Cart updated');
+    mutationFn: async ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) => {
+      const { data } = await apiClient.put<ApiResponse<Cart>>(
+        `/cart/items/${cartItemId}`,
+        { quantity },
+        requestConfig()
+      );
+
+      if (!data.data) {
+        throw new Error(data.message || 'Updated cart was not returned');
+      }
+
+      return data.data;
     },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err?.response?.data?.message || 'Failed to update cart');
+    onSuccess: syncCart,
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update cart'));
     },
   });
 }
 
 export function useRemoveFromCart() {
-  const queryClient = useQueryClient();
+  const syncCart = useCartMutationSuccess();
 
   return useMutation({
-    mutationFn: (cartItemId: string) =>
-      executeWithGuestTokenRetry((guestToken) =>
-        publicApiClient
-          .delete<ApiResponse<Cart>>(`/cart/items/${cartItemId}`, getCartRequestConfig(guestToken))
-          .then((res) => res.data.data!)
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.all });
-      toast.success('Removed from cart');
+    mutationFn: async (cartItemId: string) => {
+      const { data } = await apiClient.delete<ApiResponse<Cart>>(`/cart/items/${cartItemId}`, {
+        ...requestConfig(),
+      });
+
+      if (!data.data) {
+        throw new Error(data.message || 'Updated cart was not returned');
+      }
+
+      return data.data;
     },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err?.response?.data?.message || 'Failed to remove item');
+    onSuccess: syncCart,
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to remove item'));
     },
   });
 }
 
 export function useClearCart() {
-  const queryClient = useQueryClient();
+  const syncCart = useCartMutationSuccess();
 
   return useMutation({
-    mutationFn: () =>
-      executeWithGuestTokenRetry((guestToken) =>
-        publicApiClient
-          .delete<ApiResponse<Cart>>('/cart', getCartRequestConfig(guestToken))
-          .then((res) => res.data.data!)
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cartKeys.all });
+    mutationFn: async () => {
+      const { data } = await apiClient.delete<ApiResponse<Cart>>('/cart', {
+        ...requestConfig(),
+      });
+
+      if (!data.data) {
+        throw new Error(data.message || 'Updated cart was not returned');
+      }
+
+      return data.data;
+    },
+    onSuccess: (cart) => {
+      syncCart(cart);
       toast.success('Cart cleared');
     },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err?.response?.data?.message || 'Failed to clear cart');
-    },
-  });
-}
-
-export function useMergeCart() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (userId: string) =>
-      executeWithGuestTokenRetry((guestToken) =>
-        publicApiClient
-          .post<ApiResponse<Cart>>('/cart/merge', null, {
-            params: { userId, guestToken },
-            headers: { 'X-Guest-Token': guestToken },
-          })
-          .then((res) => res.data.data!)
-      ),
-    onSuccess: () => {
-      removeGuestToken();
-      queryClient.invalidateQueries({ queryKey: cartKeys.all });
-    },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err?.response?.data?.message || 'Failed to merge cart');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to clear cart'));
     },
   });
 }

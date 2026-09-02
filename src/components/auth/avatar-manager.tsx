@@ -1,7 +1,7 @@
 'use client';
 
 import { EntityImageManager } from '@/components/common/entity-image-manager';
-import { useUploadAvatar, useRemoveAvatar } from '@/lib/auth/mutations';
+import { useUploadAvatar } from '@/lib/auth/mutations';
 
 interface AuthAvatarManagerProps {
   avatarUrl?: string;
@@ -9,7 +9,6 @@ interface AuthAvatarManagerProps {
 
 export function AuthAvatarManager({ avatarUrl }: AuthAvatarManagerProps) {
   const uploadAvatar = useUploadAvatar();
-  const removeAvatar = useRemoveAvatar();
 
   const images = [
     {
@@ -18,9 +17,7 @@ export function AuthAvatarManager({ avatarUrl }: AuthAvatarManagerProps) {
       width: 192,
       height: 192,
       onUpload: (file: File) => uploadAvatar.mutate(file),
-      onRemove: () => removeAvatar.mutate(),
       isUploading: uploadAvatar.isPending,
-      isRemoving: removeAvatar.isPending,
     },
   ];
 

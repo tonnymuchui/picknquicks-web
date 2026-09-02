@@ -1,52 +1,38 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { ensureGuestToken, removeGuestToken } from '@/lib/utils/guest-token';
-
-
-import { bootstrapGuestToken, getCartRequestConfig } from './cart-helpers';
-import { publicApiClient } from '../api/client';
+import { apiClient } from '@/lib/api/client';
+import { getCurrentCartRequestConfig } from '@/lib/cart/cart-helpers';
+import { ensureGuestToken } from '@/lib/utils/guest-token';
 
 import type { Cart } from '@/types/cart';
 import type { ApiResponse } from '@/types/common';
 
 export const cartKeys = {
   all: ['cart'] as const,
-  current: () => [...cartKeys.all, 'current'] as const,
+  details: () => [...cartKeys.all, 'detail'] as const,
+  detail: (identity?: string) => [...cartKeys.details(), identity ?? 'current'] as const,
 };
 
-export function useCart() {
-  const fetchCart = (guestToken: string) =>
-    publicApiClient
-      .get<ApiResponse<Cart>>('/cart', getCartRequestConfig(guestToken))
-      .then((res) => res.data.data!);
+async function fetchCart(): Promise<Cart> {
+  const { data } = await apiClient.get<ApiResponse<Cart>>('/cart', getCurrentCartRequestConfig());
+
+  if (!data.data) {
+    throw new Error(data.message || 'Cart data was not returned');
+  }
+
+  return data.data;
+}
+
+export function useCart(enabled = true) {
+  const identity = `session:${ensureGuestToken()}`;
 
   return useQuery({
-    queryKey: cartKeys.current(),
-    queryFn: async (): Promise<Cart> => {
-      let guestToken = ensureGuestToken();
-
-      try {
-        return await fetchCart(guestToken);
-      } catch (error: unknown) {
-        const err = error as { response?: { status?: number } };
-        if (err?.response?.status === 401) {
-          removeGuestToken();
-          guestToken = await bootstrapGuestToken();
-          return fetchCart(guestToken);
-        }
-        throw error;
-      }
-    },
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-    retry: (failureCount, error) => {
-      const err = error as { response?: { status?: number } };
-      if (err?.response?.status === 404 || err?.response?.status === 400) {
-        return false;
-      }
-      return failureCount < 1;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
-    throwOnError: false,
+    queryKey: cartKeys.detail(identity),
+    queryFn: fetchCart,
+    enabled,
+    staleTime: 0,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: true,
+    retry: 1,
   });
 }

@@ -46,6 +46,13 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
 
   const nameField = register('name');
 
+  const handleClose = () => {
+    reset();
+    setLogoFile(null);
+    setBannerFile(null);
+    onClose();
+  };
+
   useEffect(() => {
     if (brand) {
       reset({
@@ -63,17 +70,12 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
         metaDescription: brand.metaDescription || '',
         metaKeywords: brand.metaKeywords || '',
       });
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLogoFile(null);
-      setBannerFile(null);
     } else {
       reset({
         active: true,
         featured: false,
         displayOrder: 0,
       });
-      setLogoFile(null);
-      setBannerFile(null);
     }
   }, [brand, reset]);
 
@@ -97,20 +99,14 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
         { id: brand.id, input },
         {
           onSuccess: () => {
-            reset();
-            setLogoFile(null);
-            setBannerFile(null);
-            onClose();
+            handleClose();
           },
         }
       );
     } else {
       createBrand.mutate(input, {
         onSuccess: () => {
-          reset();
-          setLogoFile(null);
-          setBannerFile(null);
-          onClose();
+          handleClose();
         },
       });
     }
@@ -123,11 +119,22 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
   const isPending = createBrand.isPending || updateBrand.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg border border-gray-800 bg-gray-900 shadow-xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-800 bg-gray-900/95 p-6">
-          <h2 className="text-xl font-bold text-white">{brand ? 'Edit Brand' : 'Create Brand'}</h2>
-          <button className="text-gray-500 transition-colors hover:text-gray-300" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto border border-black/20 bg-white">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/10 bg-white p-6">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#9a5d3b]">
+              Catalog
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-black">
+              {brand ? 'Edit brand' : 'Add brand'}
+            </h2>
+          </div>
+          <button
+            aria-label="Close"
+            className="p-1 text-black/45 transition-colors hover:bg-[#f1f1f1] hover:text-black"
+            onClick={handleClose}
+          >
             <X size={24} />
           </button>
         </div>
@@ -136,12 +143,11 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">Brand Name</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Brand name</label>
                 <input
                   {...nameField}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Apple"
-                  style={{ WebkitTextFillColor: 'white' }}
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
+                  placeholder="Brand name"
                   type="text"
                   onChange={(e) => {
                     nameField.onChange(e);
@@ -155,62 +161,58 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
                   }}
                 />
                 {errors.name ? (
-                  <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
+                  <p className="mt-1 text-sm text-red-700">{errors.name.message}</p>
                 ) : null}
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">Slug</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Slug</label>
                 <input
                   {...register('slug')}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
                   placeholder="apple"
-                  style={{ WebkitTextFillColor: 'white' }}
                   type="text"
                 />
                 {errors.slug ? (
-                  <p className="mt-1 text-sm text-red-400">{errors.slug.message}</p>
+                  <p className="mt-1 text-sm text-red-700">{errors.slug.message}</p>
                 ) : null}
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">Description</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Description</label>
                 <textarea
                   {...register('description')}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Brand description..."
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
+                  placeholder="Describe the maker and its products"
                   rows={4}
-                  style={{ WebkitTextFillColor: 'white' }}
                 />
                 {errors.description ? (
-                  <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
+                  <p className="mt-1 text-sm text-red-700">{errors.description.message}</p>
                 ) : null}
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">Website URL</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Website URL</label>
                 <input
                   {...register('websiteUrl')}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="https://www.apple.com"
-                  style={{ WebkitTextFillColor: 'white' }}
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
+                  placeholder="https://example.com"
                   type="url"
                 />
                 {errors.websiteUrl ? (
-                  <p className="mt-1 text-sm text-red-400">{errors.websiteUrl.message}</p>
+                  <p className="mt-1 text-sm text-red-700">{errors.websiteUrl.message}</p>
                 ) : null}
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">
-                  Country of Origin
+                <label className="mb-1 block text-sm font-medium text-black/70">
+                  Country of origin
                 </label>
                 <input
                   {...register('countryOfOrigin')}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
                   list="countries"
                   placeholder="USA"
-                  style={{ WebkitTextFillColor: 'white' }}
                 />
                 <datalist id="countries">
                   {countries?.map((country) => (
@@ -220,14 +222,13 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">
-                  Display Order
+                <label className="mb-1 block text-sm font-medium text-black/70">
+                  Display order
                 </label>
                 <input
                   {...register('displayOrder', { valueAsNumber: true })}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
                   min="0"
-                  style={{ WebkitTextFillColor: 'white' }}
                   type="number"
                 />
               </div>
@@ -236,19 +237,19 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
                 <label className="flex cursor-pointer items-center">
                   <input
                     {...register('active')}
-                    className="h-4 w-4 rounded text-purple-600"
+                    className="h-4 w-4 accent-[#9a5d3b]"
                     type="checkbox"
                   />
-                  <span className="ml-2 text-sm text-gray-300">Active</span>
+                  <span className="ml-2 text-sm text-black/70">Active</span>
                 </label>
 
                 <label className="flex cursor-pointer items-center">
                   <input
                     {...register('featured')}
-                    className="h-4 w-4 rounded text-purple-600"
+                    className="h-4 w-4 accent-[#9a5d3b]"
                     type="checkbox"
                   />
-                  <span className="ml-2 text-sm text-gray-300">Featured</span>
+                  <span className="ml-2 text-sm text-black/70">Featured</span>
                 </label>
               </div>
             </div>
@@ -270,62 +271,59 @@ export function BrandFormModal({ isOpen, onClose, brand }: BrandFormModalProps) 
             </div>
           </div>
 
-          <div className="border-t border-gray-800 pt-6">
-            <h3 className="mb-4 text-sm font-semibold text-white">SEO Settings</h3>
+          <div className="border-t border-black/10 pt-6">
+            <h3 className="mb-4 text-sm font-semibold text-black">Search details</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">Meta Title</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Page title</label>
                 <input
                   {...register('metaTitle')}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  style={{ WebkitTextFillColor: 'white' }}
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black focus:border-[#9a5d3b] focus:outline-none"
                   type="text"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">
-                  Meta Description
+                <label className="mb-1 block text-sm font-medium text-black/70">
+                  Page description
                 </label>
                 <textarea
                   {...register('metaDescription')}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black focus:border-[#9a5d3b] focus:outline-none"
                   rows={2}
-                  style={{ WebkitTextFillColor: 'white' }}
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-300">
-                  Meta Keywords
+                <label className="mb-1 block text-sm font-medium text-black/70">
+                  Search keywords
                 </label>
                 <input
                   {...register('metaKeywords')}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="electronics, premium, technology"
-                  style={{ WebkitTextFillColor: 'white' }}
+                  className="w-full border border-black/20 bg-white px-3 py-2.5 text-black placeholder:text-black/35 focus:border-[#9a5d3b] focus:outline-none"
+                  placeholder="workspace, monitor, desk"
                   type="text"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-gray-800 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-black/10 pt-4">
             <button
-              className="rounded-lg border border-gray-700 px-4 py-2 text-gray-300 transition-colors hover:bg-gray-800"
+              className="border border-black/20 px-4 py-2 text-sm font-medium text-black/70 transition-colors hover:bg-[#f1f1f1]"
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
             >
               Cancel
             </button>
             <button
-              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700 disabled:opacity-50"
+              className="flex items-center gap-2 bg-[#9a5d3b] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#754329] disabled:opacity-50"
               disabled={isPending}
               type="submit"
             >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {brand ? 'Update' : 'Create'}
+              {brand ? 'Save changes' : 'Add brand'}
             </button>
           </div>
         </form>

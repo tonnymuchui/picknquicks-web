@@ -60,11 +60,11 @@ export function FileUpload({
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-black/70">{label}</label>
 
       {previewUrl ? (
         <div className="relative inline-block">
-          <div className="h-32 w-32 overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
+          <div className="h-32 w-32 overflow-hidden border border-black/15 bg-[#f1f1f1]">
             <Image
               alt="Preview"
               className="h-full w-full object-cover"
@@ -74,7 +74,8 @@ export function FileUpload({
             />
           </div>
           <button
-            className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+            aria-label={`Remove ${label}`}
+            className="absolute -right-2 -top-2 bg-red-700 p-1 text-white hover:bg-red-800"
             type="button"
             onClick={handleRemove}
           >
@@ -83,16 +84,16 @@ export function FileUpload({
         </div>
       ) : (
         <div
-          className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:border-blue-500"
+          className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center border border-dashed border-black/20 bg-white transition-colors hover:bg-[#f1f1f1]"
           onClick={() => inputRef.current?.click()}
         >
           {accept.includes('image') ? (
-            <ImageIcon className="mb-2 text-gray-400" size={32} />
+            <ImageIcon className="mb-2 text-black/40" size={28} />
           ) : (
-            <Upload className="mb-2 text-gray-400" size={32} />
+            <Upload className="mb-2 text-black/40" size={28} />
           )}
-          <span className="text-xs text-gray-500">Click to upload</span>
-          <span className="text-xs text-gray-400">Max {maxSize}MB</span>
+          <span className="text-xs text-black/60">Upload image</span>
+          <span className="mt-1 text-[10px] text-black/40">Maximum {maxSize} MB</span>
         </div>
       )}
 

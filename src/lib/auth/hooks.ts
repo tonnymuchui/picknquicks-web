@@ -6,7 +6,7 @@ import { UserRole } from '@/types/auth';
 
 import { useMe } from './queries';
 
-export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'forbidden' | 'error';
+type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'forbidden' | 'error';
 
 export function useAuth() {
   const { data: user, isLoading, error } = useMe();
@@ -36,7 +36,8 @@ export function useRequireAuth(requiredRoles?: UserRole[]) {
 
   if (!isLoading) {
     if (error && !user) {
-      status = 'error';
+      const responseStatus = (error as { response?: { status?: number } }).response?.status;
+      status = responseStatus === 403 ? 'forbidden' : 'unauthenticated';
     } else if (!user) {
       status = 'unauthenticated';
     } else if (
@@ -51,7 +52,9 @@ export function useRequireAuth(requiredRoles?: UserRole[]) {
   }
 
   useEffect(() => {
-    if (isLoading || hasRedirected.current) {return;}
+    if (isLoading || hasRedirected.current) {
+      return;
+    }
 
     if (status === 'unauthenticated') {
       hasRedirected.current = true;
@@ -61,8 +64,4 @@ export function useRequireAuth(requiredRoles?: UserRole[]) {
   }, [status, isLoading, router]);
 
   return { user, isLoading, status };
-}
-
-export function useRequireRole(role: UserRole) {
-  return useRequireAuth([role]);
 }

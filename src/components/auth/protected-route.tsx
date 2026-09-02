@@ -1,7 +1,6 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 import { useRequireAuth } from '@/lib/auth/hooks';
 
@@ -24,17 +23,7 @@ function LoadingSkeleton() {
 }
 
 export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
-  const [mounted, setMounted] = useState(false);
   const { status } = useRequireAuth(requiredRoles);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <LoadingSkeleton />;
-  }
 
   if (status === 'loading') {
     return <LoadingSkeleton />;
@@ -53,7 +42,7 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
     );
   }
 
-  if (status === 'unauthenticated' || status === 'error') {
+  if (status === 'unauthenticated') {
     return <LoadingSkeleton />;
   }
 

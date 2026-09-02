@@ -3,7 +3,7 @@
 import { X } from 'lucide-react';
 
 import { useActiveBrands } from '@/lib/brand/brands.queries';
-import { useCategories } from '@/lib/category/categories.queries';
+import { useCategoryOptions } from '@/lib/category/categories.queries';
 
 interface ProductFiltersProps {
   filters: {
@@ -14,10 +14,16 @@ interface ProductFiltersProps {
   };
   onChange: (filters: Partial<ProductFiltersProps['filters']>) => void;
   onReset: () => void;
+  showHeader?: boolean;
 }
 
-export function ProductFilters({ filters, onChange, onReset }: ProductFiltersProps) {
-  const { data: categories } = useCategories();
+export function ProductFilters({
+  filters,
+  onChange,
+  onReset,
+  showHeader = true,
+}: ProductFiltersProps) {
+  const { data: categories } = useCategoryOptions(true);
   const { data: brands } = useActiveBrands();
 
   const hasActiveFilters = Boolean(
@@ -25,30 +31,36 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
   );
 
   return (
-    <div className="space-y-6 rounded-lg bg-white p-6 shadow">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-        {hasActiveFilters ? (
-          <button
-            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
-            onClick={onReset}
-          >
-            <X size={16} />
-            Clear all
-          </button>
-        ) : null}
-      </div>
+    <div className="border-line space-y-7 border-y py-6 lg:border-y-0 lg:py-0">
+      {showHeader ? (
+        <div className="flex min-h-8 items-center justify-between gap-3">
+          <h2 className="text-ink font-serif text-xl">Filters</h2>
+          {hasActiveFilters ? (
+            <button
+              className="text-primary hover:bg-sand flex min-h-11 items-center gap-1.5 rounded-full px-2 text-xs font-semibold"
+              type="button"
+              onClick={onReset}
+            >
+              <X aria-hidden="true" size={14} />
+              Clear all
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
+        <label className="text-muted-foreground mb-2 block text-[10px] font-bold uppercase tracking-[0.14em]">
+          Category
+        </label>
         <select
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border-line bg-paper text-ink hover:border-ink/40 focus:border-primary min-h-11 w-full rounded-md border px-3 text-sm outline-none transition-colors"
           value={filters.categoryId || ''}
           onChange={(e) => onChange({ ...filters, categoryId: e.target.value || undefined })}
         >
           <option value="">All Categories</option>
-          {categories?.content.map((category) => (
+          {categories?.map((category) => (
             <option key={category.id} value={category.id}>
+              {'— '.repeat(category.level)}
               {category.name}
             </option>
           ))}
@@ -56,9 +68,11 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">Brand</label>
+        <label className="text-muted-foreground mb-2 block text-[10px] font-bold uppercase tracking-[0.14em]">
+          Brand
+        </label>
         <select
-          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border-line bg-paper text-ink hover:border-ink/40 focus:border-primary min-h-11 w-full rounded-md border px-3 text-sm outline-none transition-colors"
           value={filters.brandId || ''}
           onChange={(e) => onChange({ ...filters, brandId: e.target.value || undefined })}
         >
@@ -72,10 +86,13 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">Price Range</label>
+        <label className="text-muted-foreground mb-2 block text-[10px] font-bold uppercase tracking-[0.14em]">
+          Price range (KSh)
+        </label>
         <div className="grid grid-cols-2 gap-2">
           <input
-            className="rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Minimum price"
+            className="border-line bg-paper text-ink hover:border-ink/40 focus:border-primary min-h-11 min-w-0 rounded-md border px-3 text-sm outline-none transition-colors"
             placeholder="Min"
             type="number"
             value={filters.minPrice || ''}
@@ -87,7 +104,8 @@ export function ProductFilters({ filters, onChange, onReset }: ProductFiltersPro
             }
           />
           <input
-            className="rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Maximum price"
+            className="border-line bg-paper text-ink hover:border-ink/40 focus:border-primary min-h-11 min-w-0 rounded-md border px-3 text-sm outline-none transition-colors"
             placeholder="Max"
             type="number"
             value={filters.maxPrice || ''}
