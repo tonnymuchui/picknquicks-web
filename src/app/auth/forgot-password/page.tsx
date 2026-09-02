@@ -1,97 +1,106 @@
 'use client';
 
-import { Loader2, Mail, CheckCircle2 } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import {
+  AuthShell,
+  authInputClass,
+  authLabelClass,
+  authPrimaryButtonClass,
+} from '@/components/auth/auth-shell';
 import { useForgotPassword } from '@/lib/auth/mutations';
 
 export default function ForgotPasswordPage() {
   const forgotPassword = useForgotPassword();
   const [email, setEmail] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    forgotPassword.mutate(email);
-  };
-
-  if (forgotPassword.isSuccess) {
-    return (
-      <div className="to-primary/5 bg-linear-to-br flex min-h-screen items-center justify-center from-gray-50 via-white px-4">
-        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-xl shadow-gray-200/50">
-          <div className="bg-secondary/20 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-            <CheckCircle2 className="text-secondary-dark h-10 w-10" />
-          </div>
-          <h2 className="mt-6 text-2xl font-bold text-gray-900">Check Your Email</h2>
-          <p className="mt-2 text-gray-600">
-            We&apos;ve sent password reset instructions to <strong>{email}</strong>
-          </p>
-          <p className="mt-4 text-sm text-gray-500">
-            The link will expire in 1 hour. If you don&apos;t see the email, check your spam folder.
-          </p>
-          <Link
-            className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 mt-6 inline-block w-full rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
-            href="/"
-          >
-            Back to Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="to-primary/5 bg-linear-to-br flex min-h-screen items-center justify-center from-gray-50 via-white px-4">
-      <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-xl shadow-gray-200/50">
-        <div className="text-center">
-          <div className="bg-primary/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-            <Mail className="text-primary h-10 w-10" />
+    <AuthShell
+      description={
+        forgotPassword.isSuccess
+          ? `If an account exists for ${email}, a secure reset link is on its way.`
+          : 'Enter the email connected to your account. We will send a secure link so you can choose a new password.'
+      }
+      eyebrow="Account recovery"
+      title={forgotPassword.isSuccess ? 'Check your inbox.' : 'Reset your password.'}
+    >
+      {forgotPassword.isSuccess ? (
+        <div>
+          <div className="flex items-start gap-4 border-y border-black/15 py-6">
+            <span className="bg-warm flex size-10 shrink-0 items-center justify-center rounded-full text-white">
+              <Check aria-hidden="true" size={18} />
+            </span>
+            <p className="text-sm leading-6 text-black/60">
+              The link expires for your security. Check spam or promotions if it does not arrive
+              shortly.
+            </p>
           </div>
-          <h2 className="mt-6 text-2xl font-bold text-gray-900">Forgot Password?</h2>
-          <p className="mt-2 text-gray-600">
-            No worries! Enter your email and we&apos;ll send you reset instructions.
-          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <button
+              className={authPrimaryButtonClass}
+              type="button"
+              onClick={() => forgotPassword.reset()}
+            >
+              Try another email
+            </button>
+            <Link
+              className="flex min-h-14 items-center justify-center border border-black/25 px-5 text-[11px] font-semibold uppercase tracking-[0.13em]"
+              href="/auth/login"
+            >
+              Back to sign in
+            </Link>
+          </div>
         </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+      ) : (
+        <form
+          className="space-y-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            forgotPassword.mutate(email);
+          }}
+        >
           <div>
-            <label className="block text-sm font-medium text-gray-700" htmlFor="email">
+            <label className={authLabelClass} htmlFor="recovery-email">
               Email address
             </label>
             <input
               required
-              className="focus:border-primary focus:ring-primary/20 mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 shadow-sm focus:outline-none focus:ring-2"
-              id="email"
-              placeholder="john@example.com"
+              autoComplete="email"
+              className={authInputClass}
+              id="recovery-email"
+              inputMode="email"
+              placeholder="you@example.com"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
             />
           </div>
-
           <button
-            className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 flex w-full justify-center rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
+            className={authPrimaryButtonClass}
             disabled={forgotPassword.isPending}
             type="submit"
           >
             {forgotPassword.isPending ? (
               <>
-                <Loader2 className="-ml-1 mr-2 h-5 w-5 animate-spin" />
-                Sending...
+                <Loader2 className="animate-spin" size={16} /> Sending secure link…
               </>
             ) : (
-              'Send Reset Link'
+              'Send reset link'
             )}
           </button>
-
-          <p className="text-center text-sm text-gray-600">
-            Remember your password?{' '}
-            <Link className="text-primary hover:text-primary-light font-medium" href="/auth/login">
-              Sign in
+          <p className="text-center text-[13px] text-black/55">
+            Remembered it?{' '}
+            <Link
+              className="font-semibold text-black underline underline-offset-4"
+              href="/auth/login"
+            >
+              Return to sign in
             </Link>
           </p>
         </form>
-      </div>
-    </div>
+      )}
+    </AuthShell>
   );
 }

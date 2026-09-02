@@ -41,7 +41,10 @@ export function useCreateStaff() {
 
   return useMutation({
     mutationFn: async (staffData: CreateStaffRequest) => {
-      const { data } = await apiClient.post('/admin/users/staff', staffData);
+      const { data } = await apiClient.post('/admin/users/staff', {
+        ...staffData,
+        phone: staffData.phone?.trim() || undefined,
+      });
       return data;
     },
 
@@ -118,9 +121,8 @@ export function useUpdateRole() {
       const { data } = await apiClient.put(`/admin/roles/${roleId}`, roleData);
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.roles() });
-      queryClient.invalidateQueries({ queryKey: adminKeys.roleDetail(variables.roleId) });
       toast.success('Role updated successfully');
     },
     onError: (error: unknown) => {

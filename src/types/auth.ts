@@ -28,7 +28,6 @@ export interface User {
 export interface LoginRequest {
   email: string;
   password: string;
-  rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
@@ -47,11 +46,4 @@ export interface AuthResponse {
   expiresIn: number;
   user: User;
   message?: string;
-}
-
-export interface ApiResponse {
-  success: boolean;
-  message: string;
-  data?: Record<string, unknown>;
-  timestamp: string;
 }

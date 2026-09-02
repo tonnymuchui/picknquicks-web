@@ -1,288 +1,232 @@
 'use client';
 
-import { ArrowLeft, Mail, Phone, User as UserIcon, Save, Check, AlertCircle } from 'lucide-react';
+import { AlertCircle, Check, Mail, Package, Save, Settings } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
+import { AccountShell } from '@/components/auth/account-shell';
+import {
+  authInputClass,
+  authLabelClass,
+  authPrimaryButtonClass,
+} from '@/components/auth/auth-shell';
 import { AuthAvatarManager } from '@/components/auth/avatar-manager';
 import { useRequireAuth } from '@/lib/auth/hooks';
 import { useUpdateProfile } from '@/lib/auth/mutations';
 import { resolveAvatarUrl } from '@/lib/utils/media';
 
+import type { User } from '@/types/auth';
+
 export default function ProfilePage() {
   const { user, isLoading, status } = useRequireAuth();
-  const updateProfile = useUpdateProfile();
-
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-  });
-
-  const [isDirty, setIsDirty] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        phone: user.phone || '',
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.firstName, user?.lastName, user?.phone]);
 
   if (isLoading || status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="border-t-primary h-12 w-12 animate-spin rounded-full border-4 border-gray-200" />
-          <p className="text-sm text-gray-600">Loading your profile...</p>
-        </div>
-      </div>
-    );
+    return <div aria-label="Loading account" className="min-h-[70vh] animate-pulse bg-[#f1f1f1]" />;
   }
-
   if (status === 'unauthenticated' || !user) {
     return null;
   }
+  return <ProfileContent key={user.id} user={user} />;
+}
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+function ProfileContent({ user }: { user: User }) {
+  const updateProfile = useUpdateProfile();
+  const [formData, setFormData] = useState({
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    phone: user.phone || '',
+  });
+  const [isDirty, setIsDirty] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
-    if (formData.phone && !/^[0-9+\-\s()]+$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormData((current) => ({ ...current, [name]: value }));
     setIsDirty(true);
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
+      setErrors((current) => ({ ...current, [name]: '' }));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      const form = new FormData();
-      form.append('firstName', formData.firstName);
-      form.append('lastName', formData.lastName);
-      form.append('phone', formData.phone);
-
-      updateProfile.mutate(form, {
-        onSuccess: () => {
-          setIsDirty(false);
-        },
-      });
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const nextErrors: Record<string, string> = {};
+    if (!formData.firstName.trim()) {
+      nextErrors.firstName = 'First name is required';
     }
+    if (!formData.lastName.trim()) {
+      nextErrors.lastName = 'Last name is required';
+    }
+    if (formData.phone && !/^[0-9+\-\s()]+$/.test(formData.phone)) {
+      nextErrors.phone = 'Enter a valid phone number';
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) {
+      return;
+    }
+
+    const form = new FormData();
+    form.append('firstName', formData.firstName.trim());
+    form.append('lastName', formData.lastName.trim());
+    form.append('phone', formData.phone.trim());
+    updateProfile.mutate(form, { onSuccess: () => setIsDirty(false) });
   };
 
-  const isFormValid = formData.firstName.trim() && formData.lastName.trim();
+  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}` || 'PQ';
 
   return (
-    <div className="bg-linear-to-b min-h-screen from-gray-50 to-white">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center gap-3">
+    <AccountShell
+      action={
+        <Link
+          className="inline-flex min-h-12 items-center gap-2 border border-black px-5 text-[10px] font-semibold uppercase tracking-[0.13em]"
+          href="/orders"
+        >
+          <Package size={15} /> View orders
+        </Link>
+      }
+      description="Keep delivery details current, review past orders and manage how you access PickNQuicks."
+      title="Your workspace account."
+    >
+      <div className="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
+        <aside className="border border-black/15 bg-white p-7 text-black sm:p-9">
+          <div className="flex items-center gap-5">
+            {user.avatarUrl ? (
+              <Image
+                alt="Profile"
+                className="size-20 rounded-full object-cover"
+                height={80}
+                src={resolveAvatarUrl(user.avatarUrl) || user.avatarUrl}
+                width={80}
+              />
+            ) : (
+              <div className="flex size-20 items-center justify-center rounded-full bg-black text-xl font-semibold text-white">
+                {initials}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-2xl font-normal uppercase tracking-[-0.02em]">
+                {user.fullName}
+              </p>
+              <p className="mt-1 truncate text-xs text-black/55">{user.email}</p>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-black/15 pt-6">
+            <p className="flex items-center gap-2 text-xs text-black/65">
+              {user.emailVerified ? <Check size={14} /> : <AlertCircle size={14} />}
+              {user.emailVerified ? 'Email verified' : 'Email confirmation pending'}
+            </p>
+            <p className="mt-4 flex items-center gap-2 text-xs text-black/65">
+              <Mail size={14} /> Account active
+            </p>
+          </div>
           <Link
-            className="inline-flex items-center justify-center rounded-lg p-2 transition-all hover:bg-gray-100"
-            href="/"
+            className="mt-8 flex min-h-12 items-center justify-between bg-black px-5 text-[10px] font-semibold uppercase tracking-[0.13em] text-white hover:bg-black/80"
+            href="/settings"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
+            Account settings <Settings size={15} />
           </Link>
-          <div>
-            <nav className="flex items-center gap-2 text-sm text-gray-600">
-              <Link className="hover:text-gray-900" href="/">
-                Home
-              </Link>
-              <span>/</span>
-              <span className="font-medium text-gray-900">My Profile</span>
-            </nav>
-          </div>
-        </div>
+        </aside>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-              <div className="bg-linear-to-r from-primary to-primary-light border-b border-gray-200 px-6 py-8">
-                <div className="flex items-center gap-4">
-                  <div>
-                    {user.avatarUrl ? (
-                      <Image
-                        alt="Profile"
-                        className="h-20 w-20 rounded-full border-2 border-white object-cover shadow-lg"
-                        height={80}
-                        src={resolveAvatarUrl(user.avatarUrl) || user.avatarUrl}
-                        width={80}
-                      />
-                    ) : (
-                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-bold text-white shadow-lg">
-                        {user.firstName[0]}
-                        {user.lastName[0]}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-white">{user.fullName}</h1>
-                    <p className="text-white/90">{user.email}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      {user.emailVerified ? (
-                        <>
-                          <Check className="h-4 w-4 text-green-300" />
-                          <span className="text-sm text-green-50">Email verified</span>
-                        </>
-                      ) : (
-                        <>
-                          <AlertCircle className="h-4 w-4 text-yellow-300" />
-                          <span className="text-sm text-yellow-50">Email not verified</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <form className="divide-y divide-gray-200" onSubmit={handleSubmit}>
-                <div className="space-y-6 p-6">
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div>
-                      <label
-                        className="block text-sm font-semibold text-gray-900"
-                        htmlFor="firstName"
-                      >
-                        First Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        className={`focus:border-primary/60 focus:ring-primary/20 shadow-primary/5 mt-2 block w-full rounded-xl border bg-white px-4 py-2.5 shadow-sm transition-all focus:outline-none focus:ring-2 ${
-                          errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                        id="firstName"
-                        name="firstName"
-                        type="text"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                      />
-                      {errors.firstName ? (
-                        <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-                      ) : null}
-                    </div>
-                    <div>
-                      <label
-                        className="block text-sm font-semibold text-gray-900"
-                        htmlFor="lastName"
-                      >
-                        Last Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        className={`focus:border-primary/60 focus:ring-primary/20 shadow-primary/5 mt-2 block w-full rounded-xl border bg-white px-4 py-2.5 shadow-sm transition-all focus:outline-none focus:ring-2 ${
-                          errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                        id="lastName"
-                        name="lastName"
-                        type="text"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                      />
-                      {errors.lastName ? (
-                        <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900" htmlFor="phone">
-                      Phone Number
-                    </label>
-                    <div className="relative mt-2">
-                      <Phone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                      <input
-                        className={`focus:border-primary/60 focus:ring-primary/20 shadow-primary/5 block w-full rounded-xl border bg-white py-2.5 pl-12 pr-4 shadow-sm transition-all focus:outline-none focus:ring-2 ${
-                          errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    {errors.phone ? (
-                      <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 bg-gray-50 p-6">
-                  <button
-                    className="bg-primary hover:bg-primary-light flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={updateProfile.isPending || !isDirty || !isFormValid}
-                    type="submit"
-                  >
-                    <Save className="h-4 w-4" />
-                    {updateProfile.isPending ? 'Saving Changes...' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-
-              <div className="border-t border-gray-200 p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Profile Picture</h3>
-                <AuthAvatarManager avatarUrl={user.avatarUrl} />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">Account Info</h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="mt-0.5 h-5 w-5 text-gray-400" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-600">Email Address</p>
-                    <p className="truncate font-medium text-gray-900">{user.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 border-t border-gray-200 pt-4">
-                  <UserIcon className="mt-0.5 h-5 w-5 text-gray-400" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-600">Account Status</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
-                      <p className="font-medium text-gray-900">Active</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Link
-              className="block rounded-xl border border-gray-300 bg-white px-4 py-3 text-center font-semibold text-gray-900 transition-all hover:border-gray-400 hover:bg-gray-50"
-              href="/settings"
+        <section
+          aria-labelledby="profile-details-heading"
+          className="bg-[#f1f1f1] p-7 sm:p-10 lg:p-12"
+        >
+          <div className="border-b border-black/15 pb-7">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-black/45">
+              Personal details
+            </p>
+            <h2
+              className="mt-2 text-3xl font-normal uppercase tracking-[-0.025em]"
+              id="profile-details-heading"
             >
-              Account Settings
-            </Link>
+              Delivery-ready information
+            </h2>
           </div>
-        </div>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <ProfileField
+                error={errors.firstName}
+                id="firstName"
+                label="First name"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+              <ProfileField
+                error={errors.lastName}
+                id="lastName"
+                label="Last name"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+            </div>
+            <ProfileField
+              error={errors.phone}
+              id="phone"
+              label="Phone number"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+            />
+            <button
+              className={`${authPrimaryButtonClass} !bg-black hover:!bg-black/80 sm:w-auto sm:min-w-56`}
+              disabled={
+                updateProfile.isPending ||
+                !isDirty ||
+                !formData.firstName.trim() ||
+                !formData.lastName.trim()
+              }
+              type="submit"
+            >
+              <Save size={15} />
+              {updateProfile.isPending ? 'Saving changes…' : 'Save details'}
+            </button>
+          </form>
+
+          <div className="mt-12 border-t border-black/15 pt-8">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-black/45">
+              Profile image
+            </p>
+            <p className="mb-5 mt-2 text-sm leading-6 text-black/55">
+              Add an image to make your account easier to recognise.
+            </p>
+            <AuthAvatarManager avatarUrl={user.avatarUrl} />
+          </div>
+        </section>
       </div>
+    </AccountShell>
+  );
+}
+
+function ProfileField({
+  error,
+  id,
+  label,
+  onChange,
+  type = 'text',
+  value,
+}: {
+  error?: string;
+  id: string;
+  label: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  value: string;
+}) {
+  return (
+    <div>
+      <label className={authLabelClass} htmlFor={id}>
+        {label}
+      </label>
+      <input
+        className={`${authInputClass} ${error ? 'border-red-700' : ''}`}
+        id={id}
+        name={id}
+        type={type}
+        value={value}
+        onChange={onChange}
+      />
+      {error ? <p className="mt-2 text-xs text-red-700">{error}</p> : null}
     </div>
   );
 }

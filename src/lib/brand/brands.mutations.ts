@@ -1,7 +1,3 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-
-import { apiClient } from '@/lib/api/client';
 import { useEntityCrud } from '@/lib/hooks/use-entity-crud';
 import { useImageUpload } from '@/lib/hooks/use-image-upload';
 
@@ -10,7 +6,8 @@ import { brandKeys } from './brands.queries';
 import type { CreateBrandInput, UpdateBrandInput, Brand } from '@/types/brand';
 
 function buildFormData(input: CreateBrandInput | UpdateBrandInput): FormData | object {
-  const hasFiles = ('logoFile' in input && input.logoFile) || ('bannerFile' in input && input.bannerFile);
+  const hasFiles =
+    ('logoFile' in input && input.logoFile) || ('bannerFile' in input && input.bannerFile);
 
   if (hasFiles) {
     const formData = new FormData();
@@ -74,18 +71,4 @@ export function useRemoveBrandLogo() {
 export function useRemoveBrandBanner() {
   const { useRemove } = useImageUpload<Brand>(imageConfig);
   return useRemove((id) => `/brands/${id}/banner`, 'Banner');
-}
-
-export function useReorderBrands() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (brandIds: string[]): Promise<void> => {
-      await apiClient.patch('/brands/reorder', brandIds);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: brandKeys.all });
-      toast.success('Brands reordered successfully');
-    },
-  });
 }

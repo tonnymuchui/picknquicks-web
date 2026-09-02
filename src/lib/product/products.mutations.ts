@@ -94,6 +94,21 @@ export function useRemoveProductImage() {
   });
 }
 
+export function useSetPrimaryProductImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ productId, imageId }: { productId: string; imageId: string }) => {
+      await apiClient.patch(`/products/${productId}/images/${imageId}`, { isPrimary: true });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: productKeys.detail(variables.productId) });
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+      toast.success('Primary product image updated');
+    },
+    onError: () => toast.error('Unable to update the primary image'),
+  });
+}
+
 export function useUpdateProductStock() {
   const queryClient = useQueryClient();
 
@@ -107,15 +122,14 @@ export function useUpdateProductStock() {
     }): Promise<Product> => {
       const { data } = await apiClient.patch<ApiResponse<Product>>(
         `/products/${productId}/stock`,
-        input
+        input,
+        { headers: { 'Idempotency-Key': crypto.randomUUID() } }
       );
       return data.data!;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: productKeys.detail(variables.productId) });
       queryClient.invalidateQueries({ queryKey: productKeys.all });
-      queryClient.invalidateQueries({ queryKey: productKeys.lowStock() });
-      queryClient.invalidateQueries({ queryKey: productKeys.outOfStock() });
       toast.success('Stock updated successfully');
     },
     onError: (error: unknown) => {

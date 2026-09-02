@@ -31,17 +31,6 @@ export function useBrands(filters: BrandFilters = {}) {
   });
 }
 
-export function useBrand(id: string) {
-  return useQuery({
-    queryKey: brandKeys.detail(id),
-    queryFn: async (): Promise<Brand> => {
-      const { data } = await apiClient.get<ApiResponse<Brand>>(`/brands/${id}`);
-      return data.data!;
-    },
-    enabled: !!id,
-  });
-}
-
 export function useBrandBySlug(slug: string) {
   return useQuery({
     queryKey: brandKeys.bySlug(slug),
@@ -72,30 +61,6 @@ export function useFeaturedBrands() {
       return data.data!;
     },
     staleTime: 10 * 60 * 1000,
-  });
-}
-
-export function useSearchBrands(query: string, filters: BrandFilters = {}) {
-  return useQuery({
-    queryKey: [...brandKeys.all, 'search', query, filters],
-    queryFn: async (): Promise<PaginatedResponse<Brand>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Brand>>>('/brands/search', {
-        params: { query, ...filters },
-      });
-      return data.data!;
-    },
-    enabled: !!query,
-  });
-}
-
-export function useBrandsByCountry(country: string) {
-  return useQuery({
-    queryKey: brandKeys.byCountry(country),
-    queryFn: async (): Promise<Brand[]> => {
-      const { data } = await apiClient.get<ApiResponse<Brand[]>>(`/brands/country/${country}`);
-      return data.data!;
-    },
-    enabled: !!country,
   });
 }
 

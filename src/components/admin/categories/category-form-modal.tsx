@@ -5,6 +5,7 @@ import { X, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { CategoryStoryManager } from '@/components/admin/categories/category-story-manager';
 import { FileUpload } from '@/components/common/file-upload';
 import { useCreateCategory, useUpdateCategory } from '@/lib/category/categories.mutations';
 import { useCategoryTree } from '@/lib/category/categories.queries';
@@ -126,13 +127,13 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
   const isPending = createCategory.isPending || updateCategory.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="mx-4 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white shadow-xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-6">
-          <h2 className="text-xl font-bold text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 ">
+      <div className="mx-4 max-h-[90vh] w-full max-w-5xl overflow-y-auto bg-white">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/15 bg-white p-6">
+          <h2 className="text-xl font-bold text-black">
             {category ? 'Edit Category' : 'Create Category'}
           </h2>
-          <button className="text-gray-400 hover:text-gray-600" onClick={handleClose}>
+          <button className="text-black/45 hover:text-black/65" onClick={handleClose}>
             <X size={24} />
           </button>
         </div>
@@ -141,10 +142,10 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Name</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Name</label>
                 <input
                   {...register('name')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
                   placeholder="Electronics"
                   type="text"
                 />
@@ -154,10 +155,10 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Slug</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Slug</label>
                 <input
                   {...register('slug')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
                   placeholder="electronics"
                   type="text"
                 />
@@ -167,10 +168,10 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Description</label>
                 <textarea
                   {...register('description')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
                   placeholder="Category description..."
                   rows={3}
                 />
@@ -199,12 +200,12 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-black/70">
                 Parent Category
               </label>
               <select
                 {...register('parentId')}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
               >
                 <option value="">None (Root Category)</option>
                 {categoryTree?.map((cat) => (
@@ -214,10 +215,10 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Display Order</label>
+              <label className="mb-1 block text-sm font-medium text-black/70">Display Order</label>
               <input
                 {...register('displayOrder', { valueAsNumber: true })}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
                 min="0"
                 type="number"
               />
@@ -226,46 +227,42 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
 
           <div className="flex items-center">
             <label className="flex cursor-pointer items-center">
-              <input
-                {...register('active')}
-                className="h-4 w-4 rounded text-blue-600"
-                type="checkbox"
-              />
-              <span className="ml-2 text-sm text-gray-700">Active</span>
+              <input {...register('active')} className="h-4 w-4  text-black/60" type="checkbox" />
+              <span className="ml-2 text-sm text-black/70">Active</span>
             </label>
           </div>
 
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="mb-4 text-sm font-semibold text-gray-900">SEO Settings</h3>
+          <div className="border-t border-black/15 pt-6">
+            <h3 className="mb-4 text-sm font-semibold text-black">SEO Settings</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Meta Title</label>
+                <label className="mb-1 block text-sm font-medium text-black/70">Meta Title</label>
                 <input
                   {...register('metaTitle')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
                   type="text"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black/70">
                   Meta Description
                 </label>
                 <textarea
                   {...register('metaDescription')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
                   rows={2}
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black/70">
                   Meta Keywords
                 </label>
                 <input
                   {...register('metaKeywords')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full  border border-black/20 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#9a5d3b]"
                   placeholder="electronics, gadgets, devices"
                   type="text"
                 />
@@ -273,16 +270,16 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-black/15 pt-4">
             <button
-              className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              className=" border border-black/20 px-4 py-2 text-black/70 hover:bg-[#f1f1f1]"
               type="button"
               onClick={handleClose}
             >
               Cancel
             </button>
             <button
-              className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="flex items-center gap-2  bg-[#9a5d3b] px-4 py-2 text-white hover:bg-[#754329] disabled:opacity-50"
               disabled={isPending}
               type="submit"
             >
@@ -291,6 +288,7 @@ export function CategoryFormModal({ isOpen, onClose, category }: CategoryFormMod
             </button>
           </div>
         </form>
+        {category ? <CategoryStoryManager categoryId={category.id} /> : null}
       </div>
     </div>
   );

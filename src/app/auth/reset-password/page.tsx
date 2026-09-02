@@ -1,232 +1,193 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Eye, EyeOff, XCircle, Key } from 'lucide-react';
+import { Check, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 
+import {
+  AuthShell,
+  authInputClass,
+  authLabelClass,
+  authPrimaryButtonClass,
+} from '@/components/auth/auth-shell';
 import { useResetPassword } from '@/lib/auth/mutations';
 import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/schemas/auth.schema';
+import { createClient } from '@/lib/supabase/client';
 
-function ResetPasswordContent() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+type RecoveryState = 'checking' | 'ready' | 'invalid';
 
+export default function ResetPasswordPage() {
   const resetPassword = useResetPassword();
-
+  const [recoveryState, setRecoveryState] = useState<RecoveryState>('checking');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    watch,
-    setValue,
-  } = useForm<ResetPasswordInput>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      token: token || '',
-    },
-  });
-
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const password = watch('newPassword');
+    control,
+    formState: { errors, isValid },
+  } = useForm<ResetPasswordInput>({ resolver: zodResolver(resetPasswordSchema), mode: 'onChange' });
+  const password = useWatch({ control, name: 'newPassword' }) ?? '';
 
   useEffect(() => {
-    if (token) {
-      setValue('token', token);
-    }
-  }, [token, setValue]);
+    void createClient()
+      .auth.getSession()
+      .then(({ data }) => {
+        setRecoveryState(data.session ? 'ready' : 'invalid');
+      });
+  }, []);
 
-  if (!token) {
+  if (recoveryState === 'checking') {
     return (
-      <div className="to-primary/5 bg-linear-to-br flex min-h-screen items-center justify-center from-gray-50 via-white px-4">
-        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-xl shadow-gray-200/50">
-          <div className="bg-highlight/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-            <XCircle className="text-highlight h-10 w-10" />
-          </div>
-          <h2 className="mt-6 text-2xl font-bold text-gray-900">Invalid Reset Link</h2>
-          <p className="mt-2 text-gray-600">
-            This password reset link is invalid or has expired. Please request a new one.
-          </p>
-          <Link
-            className="bg-primary shadow-primary/25 hover:bg-primary-light mt-6 inline-block w-full rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg"
-            href="/auth/forgot-password"
-          >
-            Request New Link
-          </Link>
+      <AuthShell
+        description="Please wait while we verify this password recovery request."
+        eyebrow="Account recovery"
+        title="Securing your link…"
+      >
+        <div className="flex items-center gap-3 border-y border-black/15 py-6 text-sm text-black/55">
+          <Loader2 className="animate-spin" size={18} /> Verifying secure session
         </div>
-      </div>
+      </AuthShell>
     );
   }
 
-  const onSubmit = (data: ResetPasswordInput) => {
-    resetPassword.mutate(data);
-  };
+  if (recoveryState === 'invalid') {
+    return (
+      <AuthShell
+        description="For your security, password links can only be used for a limited time and from the browser that opened them."
+        eyebrow="Link unavailable"
+        title="This link has expired."
+      >
+        <Link className={authPrimaryButtonClass} href="/auth/forgot-password">
+          Request a new link
+        </Link>
+        <p className="mt-6 text-center text-[13px] text-black/55">
+          <Link className="underline underline-offset-4" href="/auth/login">
+            Back to sign in
+          </Link>
+        </p>
+      </AuthShell>
+    );
+  }
 
-  const getPasswordStrength = (pwd: string): number => {
-    if (!pwd) {
-      return 0;
-    }
-    let strength = 0;
-    if (pwd.length >= 8) {
-      strength++;
-    }
-    if (/[a-z]/.test(pwd)) {
-      strength++;
-    }
-    if (/[A-Z]/.test(pwd)) {
-      strength++;
-    }
-    if (/[0-9]/.test(pwd)) {
-      strength++;
-    }
-    if (/[@#$%^&+=]/.test(pwd)) {
-      strength++;
-    }
-    return strength;
-  };
+  if (resetPassword.isSuccess) {
+    return (
+      <AuthShell
+        description="Your new password is active. You can now continue with the workspace pieces you were considering."
+        eyebrow="Password updated"
+        title="Your account is secure."
+      >
+        <div className="mb-6 flex items-center gap-4 border-y border-black/15 py-6 text-sm text-black/60">
+          <span className="bg-warm flex size-10 items-center justify-center rounded-full text-white">
+            <Check size={18} />
+          </span>
+          Password changed successfully.
+        </div>
+        <Link className={authPrimaryButtonClass} href="/">
+          Continue shopping
+        </Link>
+      </AuthShell>
+    );
+  }
 
-  const passwordStrength = getPasswordStrength(password);
+  const fieldClass = (invalid: boolean) =>
+    `${authInputClass} pr-14 ${invalid ? 'border-red-700' : ''}`;
+  const strength = [
+    password.length >= 8,
+    /[a-z]/.test(password),
+    /[A-Z]/.test(password),
+    /[0-9]/.test(password),
+    /[@#$%^&+=]/.test(password),
+  ].filter(Boolean).length;
 
   return (
-    <div className="to-primary/5 bg-linear-to-br flex min-h-screen items-center justify-center from-gray-50 via-white px-4">
-      <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-xl shadow-gray-200/50">
-        <div className="text-center">
-          <div className="bg-primary/10 mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-            <Key className="text-primary h-10 w-10" />
-          </div>
-          <h2 className="mt-6 text-2xl font-bold text-gray-900">Reset Password</h2>
-          <p className="mt-2 text-gray-600">Enter your new password below.</p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div>
-            <label className="block text-sm font-medium text-gray-700" htmlFor="newPassword">
-              New password
-            </label>
-            <div className="relative mt-1">
-              <input
-                {...register('newPassword')}
-                className={`focus:border-primary focus:ring-primary/20 block w-full rounded-xl border bg-gray-50/50 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 ${
-                  errors.newPassword ? 'border-red-500' : 'border-gray-200'
-                }`}
-                placeholder="••••••••"
-                type={showPassword ? 'text' : 'password'}
-              />
-              <button
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowPassword(!showPassword);
-                }}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-            </div>
-
-            {password ? (
-              <div className="mt-2">
-                <div className="flex items-center space-x-2">
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
-                    <div
-                      className={`h-full transition-all ${
-                        passwordStrength <= 2
-                          ? 'bg-red-500'
-                          : passwordStrength <= 3
-                            ? 'bg-highlight'
-                            : passwordStrength <= 4
-                              ? 'bg-secondary'
-                              : 'bg-primary'
-                      }`}
-                      style={{ width: `${(passwordStrength / 5) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {errors.newPassword ? (
-              <p className="mt-1 text-sm text-red-600">{errors.newPassword.message}</p>
-            ) : null}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700" htmlFor="confirmPassword">
-              Confirm new password
-            </label>
-            <div className="relative mt-1">
-              <input
-                {...register('confirmPassword')}
-                className={`focus:border-primary focus:ring-primary/20 block w-full rounded-xl border bg-gray-50/50 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-gray-200'
-                }`}
-                placeholder="••••••••"
-                type={showConfirmPassword ? 'text' : 'password'}
-              />
-              <button
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowConfirmPassword(!showConfirmPassword);
-                }}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword ? (
-              <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
-            ) : null}
-          </div>
-
-          <button
-            className="bg-primary shadow-primary/25 hover:bg-primary-light focus:ring-primary/20 flex w-full justify-center rounded-xl border border-transparent px-4 py-3 text-sm font-medium text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
-            disabled={resetPassword.isPending}
-            type="submit"
-          >
-            {resetPassword.isPending ? (
-              <>
-                <Loader2 className="-ml-1 mr-2 h-5 w-5 animate-spin" />
-                Resetting...
-              </>
-            ) : (
-              'Reset Password'
-            )}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-export default function ResetPasswordPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="to-primary/5 bg-linear-to-br flex min-h-screen items-center justify-center from-gray-50 via-white px-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-xl shadow-gray-200/50">
-            <div className="text-center">
-              <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
-              <p className="mt-4 text-gray-600">Loading...</p>
-            </div>
-          </div>
-        </div>
-      }
+    <AuthShell
+      description="Use a password unique to PickNQuicks. A strong password keeps your profile and order history protected."
+      eyebrow="Account recovery"
+      title="Choose a new password."
     >
-      <ResetPasswordContent />
-    </Suspense>
+      <form className="space-y-5" onSubmit={handleSubmit((data) => resetPassword.mutate(data))}>
+        <div>
+          <label className={authLabelClass} htmlFor="new-password">
+            New password
+          </label>
+          <div className="relative">
+            <input
+              {...register('newPassword')}
+              autoComplete="new-password"
+              className={fieldClass(!!errors.newPassword)}
+              id="new-password"
+              placeholder="Create a strong password"
+              type={showPassword ? 'text' : 'password'}
+            />
+            <button
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute inset-y-0 right-0 flex w-14 items-center justify-center text-black/45 hover:text-black"
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          {password ? (
+            <div
+              aria-label={`Password strength ${strength} out of 5`}
+              className="mt-3 grid grid-cols-5 gap-1"
+            >
+              {Array.from({ length: 5 }, (_, index) => (
+                <span
+                  key={index}
+                  className={`h-1 ${index < strength ? 'bg-warm' : 'bg-black/12'}`}
+                />
+              ))}
+            </div>
+          ) : null}
+          {errors.newPassword ? (
+            <p className="mt-2 text-xs leading-5 text-red-700">{errors.newPassword.message}</p>
+          ) : null}
+        </div>
+        <div>
+          <label className={authLabelClass} htmlFor="confirm-new-password">
+            Confirm new password
+          </label>
+          <div className="relative">
+            <input
+              {...register('confirmPassword')}
+              autoComplete="new-password"
+              className={fieldClass(!!errors.confirmPassword)}
+              id="confirm-new-password"
+              placeholder="Repeat your new password"
+              type={showConfirmation ? 'text' : 'password'}
+            />
+            <button
+              aria-label={showConfirmation ? 'Hide confirmation' : 'Show confirmation'}
+              className="absolute inset-y-0 right-0 flex w-14 items-center justify-center text-black/45 hover:text-black"
+              type="button"
+              onClick={() => setShowConfirmation((value) => !value)}
+            >
+              {showConfirmation ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          {errors.confirmPassword ? (
+            <p className="mt-2 text-xs text-red-700">{errors.confirmPassword.message}</p>
+          ) : null}
+        </div>
+        <button
+          className={authPrimaryButtonClass}
+          disabled={!isValid || resetPassword.isPending}
+          type="submit"
+        >
+          {resetPassword.isPending ? (
+            <>
+              <Loader2 className="animate-spin" size={16} /> Updating password…
+            </>
+          ) : (
+            'Update password'
+          )}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

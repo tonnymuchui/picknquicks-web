@@ -3,7 +3,6 @@ import { toast } from 'sonner';
 
 import { apiClient } from '@/lib/api/client';
 import { useEntityCrud } from '@/lib/hooks/use-entity-crud';
-import { useImageUpload } from '@/lib/hooks/use-image-upload';
 
 import { categoryKeys } from './categories.queries';
 
@@ -58,31 +57,6 @@ export function useDeleteCategory() {
     crudConfig
   );
   return useDelete();
-}
-
-const imageConfig = {
-  entityName: 'Category',
-  queryKeys: categoryKeys,
-};
-
-export function useUploadCategoryImage() {
-  const { useUpload } = useImageUpload<Category>(imageConfig);
-  return useUpload((id) => `/categories/${id}/image`, 'Image');
-}
-
-export function useUploadCategoryIcon() {
-  const { useUpload } = useImageUpload<Category>(imageConfig);
-  return useUpload((id) => `/categories/${id}/icon`, 'Icon');
-}
-
-export function useRemoveCategoryImage() {
-  const { useRemove } = useImageUpload<Category>(imageConfig);
-  return useRemove((id) => `/categories/${id}/image`, 'Image');
-}
-
-export function useRemoveCategoryIcon() {
-  const { useRemove } = useImageUpload<Category>(imageConfig);
-  return useRemove((id) => `/categories/${id}/icon`, 'Icon');
 }
 
 export function useMoveCategory() {

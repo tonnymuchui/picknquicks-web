@@ -1,0 +1,11 @@
+[00:00:01.092] Server  LOG     ✓ Ready in 889ms
+[00:00:13.255] Server  LOG     ○ Compiling / ...
+[00:00:16.094] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:17.417] Browser WARN    Image with src "/images/workspace-after-v2.webp" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[00:07:31.300] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:08.125] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:17:46.583] Server  LOG     ✓ Compiled in 1806ms
+[00:18:36.194] Server  LOG     ✓ Compiled in 265ms
+[00:19:40.067] Server  LOG     ✓ Compiled in 108ms
+[00:27:59.442] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

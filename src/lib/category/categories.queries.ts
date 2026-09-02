@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { apiClient } from '@/lib/api/client';
 
-import type { Category, CategoryTree, CategoryFilters } from '@/types/category';
-import type { ApiResponse, PaginatedResponse } from '@/types/common';
+import type { Category, CategoryTree } from '@/types/category';
+import type { ApiResponse } from '@/types/common';
 
 export const categoryKeys = {
   all: ['categories'] as const,
-  lists: () => [...categoryKeys.all, 'list'] as const,
-  list: (filters: CategoryFilters) => [...categoryKeys.lists(), filters] as const,
   trees: () => [...categoryKeys.all, 'tree'] as const,
   tree: (active?: boolean) => [...categoryKeys.trees(), { active }] as const,
   details: () => [...categoryKeys.all, 'detail'] as const,
@@ -17,22 +16,6 @@ export const categoryKeys = {
   roots: () => [...categoryKeys.all, 'roots'] as const,
   children: (parentId: string) => [...categoryKeys.all, 'children', parentId] as const,
 };
-
-export function useCategories(filters: CategoryFilters = {}) {
-  return useQuery({
-    queryKey: categoryKeys.list(filters),
-    queryFn: async (): Promise<PaginatedResponse<Category>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Category>>>(
-        '/categories',
-        {
-          params: filters,
-        }
-      );
-      return data.data!;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-}
 
 export function useCategoryTree(activeOnly = false) {
   return useQuery({
@@ -44,6 +27,17 @@ export function useCategoryTree(activeOnly = false) {
     },
     staleTime: 10 * 60 * 1000,
   });
+}
+
+export function useCategoryOptions(activeOnly = false) {
+  const query = useCategoryTree(activeOnly);
+  const data = useMemo(() => {
+    const flatten = (nodes: CategoryTree[]): CategoryTree[] =>
+      nodes.flatMap((node) => [node, ...flatten(node.children)]);
+    return query.data ? flatten(query.data) : undefined;
+  }, [query.data]);
+
+  return { ...query, data };
 }
 
 export function useCategory(id: string) {
@@ -91,21 +85,5 @@ export function useChildCategories(parentId: string, activeOnly = false) {
       return data.data!;
     },
     enabled: !!parentId,
-  });
-}
-
-export function useSearchCategories(query: string, filters: CategoryFilters = {}) {
-  return useQuery({
-    queryKey: [...categoryKeys.all, 'search', query, filters],
-    queryFn: async (): Promise<PaginatedResponse<Category>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Category>>>(
-        '/categories/search',
-        {
-          params: { query, ...filters },
-        }
-      );
-      return data.data!;
-    },
-    enabled: !!query,
   });
 }

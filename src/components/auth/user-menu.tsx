@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Crown, LogOut, Settings, Shield, ShoppingBag, Star, User } from 'lucide-react';
+import { ChevronDown, LogOut, Settings, Shield, ShoppingBag, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -11,9 +11,15 @@ import { resolveAvatarUrl } from '@/lib/utils/media';
 import { UserRole } from '@/types/auth';
 
 function getRoleBadge(roles: UserRole[]) {
-  if (roles.includes(UserRole.ADMIN)) {return { label: 'Admin', icon: Crown, bg: 'bg-highlight/15 text-highlight' };}
-  if (roles.includes(UserRole.MANAGER)) {return { label: 'Manager', icon: Shield, bg: 'bg-accent/15 text-accent-light' };}
-  if (roles.includes(UserRole.STAFF)) {return { label: 'Staff', icon: Star, bg: 'bg-secondary/15 text-secondary' };}
+  if (roles.includes(UserRole.ADMIN)) {
+    return 'Admin';
+  }
+  if (roles.includes(UserRole.MANAGER)) {
+    return 'Manager';
+  }
+  if (roles.includes(UserRole.STAFF)) {
+    return 'Staff';
+  }
   return null;
 }
 
@@ -26,25 +32,41 @@ export function UserMenu() {
 
   useEffect(() => {
     const handle = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {setIsOpen(false);}
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handle);
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
-  if (isLoading) {return <div className="h-8 w-8 animate-pulse rounded-lg bg-primary-light/20" />;}
+  if (isLoading) {
+    return <div className="bg-primary-light/20 h-8 w-8 animate-pulse rounded-lg" />;
+  }
 
   if (!isAuthenticated || !user) {
     return (
       <div className="flex items-center gap-3">
-        <Link className="text-sm font-medium text-secondary/60 transition-colors hover:text-secondary" href="/auth/login">Sign in</Link>
-        <Link className="rounded-lg bg-secondary px-4 py-1.5 text-sm font-semibold text-primary-dark transition-colors hover:bg-secondary-light" href="/auth/register">Sign up</Link>
+        <Link
+          className="text-secondary/60 hover:text-secondary text-sm font-medium transition-colors"
+          href="/auth/login"
+        >
+          Sign in
+        </Link>
+        <Link
+          className="bg-secondary text-primary-dark hover:bg-secondary-light rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
+          href="/auth/register"
+        >
+          Sign up
+        </Link>
       </div>
     );
   }
 
   const roleBadge = getRoleBadge(user.roles);
-  const isPrivileged = user.roles.some((r) => [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(r));
+  const isPrivileged = user.roles.some((r) =>
+    [UserRole.ADMIN, UserRole.STAFF, UserRole.MANAGER].includes(r)
+  );
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -53,55 +75,106 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
       >
         {avatarUrl ? (
-          <Image alt={user.fullName} className="h-7 w-7 rounded-md object-cover" height={28} src={avatarUrl} width={28} />
+          <Image
+            alt={user.fullName}
+            className="h-7 w-7 rounded-md object-cover"
+            height={28}
+            src={avatarUrl}
+            width={28}
+          />
         ) : (
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary-light/25 text-[10px] font-bold text-secondary">
-            {user.firstName?.[0]}{user.lastName?.[0]}
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#f2eee7] text-[#754329]">
+            <User aria-hidden="true" className="h-4 w-4" />
           </div>
         )}
-        <span className="hidden max-w-[72px] truncate text-sm font-medium text-secondary/75 md:block">{user.firstName}</span>
-        <ChevronDown className={`h-3 w-3 text-secondary/40 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-secondary/75 hidden max-w-[72px] truncate text-sm font-medium md:block">
+          {user.firstName}
+        </span>
+        <ChevronDown
+          className={`text-secondary/40 h-3 w-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 z-50 mt-2 w-56 animate-float-in overflow-hidden rounded-xl border border-primary-light/15 bg-primary-dark shadow-xl">
-          {/* User info */}
-          <div className="border-b border-primary-light/10 p-4">
-            <p className="text-sm font-bold text-secondary">{user.fullName}</p>
-            <p className="mt-0.5 truncate text-xs text-secondary/45">{user.email}</p>
+        <div
+          aria-label="Account menu"
+          className="absolute right-0 top-full z-50 mt-2 w-72 border border-[#d7d0c6] bg-white text-[#1f1c17]"
+          role="menu"
+        >
+          <div className="flex items-center gap-3 border-b border-[#d7d0c6] p-4">
+            {avatarUrl ? (
+              <Image
+                alt=""
+                className="size-10 shrink-0 object-cover"
+                height={40}
+                src={avatarUrl}
+                width={40}
+              />
+            ) : (
+              <div className="flex size-10 shrink-0 items-center justify-center bg-[#f2eee7] text-[#754329]">
+                <User aria-hidden="true" className="size-5" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-[#1f1c17]">{user.fullName}</p>
+              <p className="mt-0.5 truncate text-xs text-black/50">{user.email}</p>
+            </div>
             {roleBadge ? (
-              <span className={`mt-2 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${roleBadge.bg}`}>
-                <roleBadge.icon size={10} />
-                {roleBadge.label}
+              <span className="shrink-0 text-[9px] font-bold uppercase tracking-[.1em] text-[#9a5d3b]">
+                {roleBadge}
               </span>
             ) : null}
           </div>
 
-          {/* Links */}
-          <div className="p-1.5">
-            <Link className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-secondary/65 transition-colors hover:bg-primary-light/12 hover:text-secondary" href="/auth/profile" onClick={() => setIsOpen(false)}>
+          <div className="p-2">
+            <Link
+              className="flex min-h-10 items-center gap-3 px-3 text-sm text-black/65 hover:bg-[#f1f1f1] hover:text-black"
+              href="/auth/profile"
+              role="menuitem"
+              onClick={() => setIsOpen(false)}
+            >
               <User className="h-4 w-4" /> Profile
             </Link>
-            <Link className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-secondary/65 transition-colors hover:bg-primary-light/12 hover:text-secondary" href="/auth/orders" onClick={() => setIsOpen(false)}>
+            <Link
+              className="flex min-h-10 items-center gap-3 px-3 text-sm text-black/65 hover:bg-[#f1f1f1] hover:text-black"
+              href="/orders"
+              role="menuitem"
+              onClick={() => setIsOpen(false)}
+            >
               <ShoppingBag className="h-4 w-4" /> My Orders
             </Link>
-            <Link className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-secondary/65 transition-colors hover:bg-primary-light/12 hover:text-secondary" href="/settings" onClick={() => setIsOpen(false)}>
+            <Link
+              className="flex min-h-10 items-center gap-3 px-3 text-sm text-black/65 hover:bg-[#f1f1f1] hover:text-black"
+              href="/settings"
+              role="menuitem"
+              onClick={() => setIsOpen(false)}
+            >
               <Settings className="h-4 w-4" /> Settings
             </Link>
           </div>
 
           {isPrivileged ? (
-            <div className="border-t border-primary-light/10 p-1.5">
-              <Link className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-secondary transition-colors hover:bg-primary-light/12" href="/admin" onClick={() => setIsOpen(false)}>
+            <div className="border-t border-[#d7d0c6] p-2">
+              <Link
+                className="flex min-h-10 items-center gap-3 bg-[#1f1c17] px-3 text-sm font-semibold text-white hover:bg-black"
+                href="/admin"
+                role="menuitem"
+                onClick={() => setIsOpen(false)}
+              >
                 <Shield className="h-4 w-4" /> Admin Dashboard
               </Link>
             </div>
           ) : null}
 
-          <div className="border-t border-primary-light/10 p-1.5">
+          <div className="border-t border-[#d7d0c6] p-2">
             <button
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-highlight transition-colors hover:bg-highlight/8"
-              onClick={() => { setIsOpen(false); logout.mutate(); }}
+              className="flex min-h-10 w-full items-center gap-3 px-3 text-sm text-red-700 hover:bg-red-50"
+              role="menuitem"
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                logout.mutate();
+              }}
             >
               <LogOut className="h-4 w-4" /> Sign out
             </button>

@@ -4,21 +4,19 @@ export interface RoleResponse {
   id: string;
   name: string;
   description?: string;
-  permissions?: string[];
-  createdAt?: string;
-  updatedAt?: string;
+  userCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateRoleRequest {
   name: string;
   description?: string;
-  permissions?: string[];
 }
 
 export interface UpdateRoleRequest {
   name?: string;
   description?: string;
-  permissions?: string[];
 }
 
 export interface UpdateUserRolesRequest {
@@ -53,55 +51,66 @@ export interface UserFilters {
   enabled?: boolean;
 }
 
-export interface MetricData {
-  value: number | string;
-  label: string;
-  change: number;
-  isPositive: boolean;
-  trend?: 'up' | 'down' | 'stable';
-}
-
-export interface ChartDataPoint {
-  label: string;
-  value: number;
-  fill?: string;
-}
-
-export interface SalesMetrics {
-  revenue: MetricData;
-  customers: MetricData;
-  totalOrders: MetricData;
-  averageValue: MetricData;
-}
-
-export interface SalesPerformanceData {
-  months: string[];
-  sales: number[];
-  currentMonthIncrease: number;
-}
-
-export interface CategorySalesData {
-  category: string;
-  sales: number;
-  percentage: number;
-  color?: string;
-}
-
-export interface RecentOrderItem {
-  id: string;
-  customerName: string;
-  email: string;
-  orderId: string;
-  date: string;
-  itemCount: number;
-  total: number;
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
-  customerImage?: string;
-}
-
 export interface AdminDashboardData {
-  metrics: SalesMetrics;
-  salesPerformance: SalesPerformanceData;
-  categorySales: CategorySalesData[];
-  recentOrders: RecentOrderItem[];
+  periodDays: number;
+  totalUsers: number;
+  totalCustomers: number;
+  activeUsers: number;
+  totalOrders: number;
+  totalRevenue: number;
+  pendingOrders: number;
+  completedOrders: number;
+  totalProducts: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  periodRevenue: number;
+  previousRevenue: number;
+  periodSales: number;
+  previousSales: number;
+  periodOrders: number;
+  previousOrders: number;
+  averageOrderValue: number;
+  previousAverageOrderValue: number;
+  grossProfit: number;
+  previousGrossProfit: number;
+  newCustomers: number;
+  previousNewCustomers: number;
+  paymentSuccessRate: number;
+  paymentOutcomeCount: number;
+  inventoryCostValue: number;
+  inventoryRetailValue: number;
+  availableUnits: number;
+  reservedUnits: number;
+  revenueSeries: Array<{
+    label: string;
+    revenue: number;
+    orders: number;
+  }>;
+  orderStatuses: Array<{
+    status: string;
+    count: number;
+  }>;
+  topProducts: Array<{
+    id: string | null;
+    name: string;
+    sku: string;
+    units: number;
+    revenue: number;
+    profit: number;
+  }>;
+  recentOrders: Array<{
+    id: string;
+    orderNumber: string;
+    customerName: string;
+    status: string;
+    total: number;
+    createdAt: string;
+  }>;
+  stockAlerts: Array<{
+    id: string;
+    name: string;
+    sku: string;
+    available: number;
+    threshold: number;
+  }>;
 }
