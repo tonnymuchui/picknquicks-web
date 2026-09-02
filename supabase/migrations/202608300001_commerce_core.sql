@@ -1,19 +1,40 @@
 create extension if not exists pgcrypto;
 
-create type public.app_role as enum ('ADMIN', 'MANAGER', 'STAFF', 'CUSTOMER');
-create type public.order_status as enum (
-  'AWAITING_PAYMENT', 'PAYMENT_CONFIRMED', 'PROCESSING', 'READY_TO_SHIP',
-  'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED', 'REFUND_PENDING', 'REFUNDED'
-);
-create type public.payment_method as enum ('MPESA_FULL', 'CASH_ON_DELIVERY');
-create type public.payment_purpose as enum ('ORDER_TOTAL', 'DELIVERY_FEE', 'ORDER_BALANCE', 'REFUND');
-create type public.payment_status as enum (
-  'REQUIRES_ACTION', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'EXPIRED', 'REFUND_PENDING', 'REFUNDED'
-);
-create type public.inventory_movement_type as enum ('PURCHASE', 'SALE', 'RESERVATION', 'RELEASE', 'RETURN', 'ADJUSTMENT');
-create type public.ledger_account_type as enum ('ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE');
-create type public.entry_direction as enum ('DEBIT', 'CREDIT');
-create type public.outbox_status as enum ('PENDING', 'SENDING', 'SENT', 'FAILED', 'DEAD');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'app_role' and typnamespace = 'public'::regnamespace) then
+    create type public.app_role as enum ('ADMIN', 'MANAGER', 'STAFF', 'CUSTOMER');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'order_status' and typnamespace = 'public'::regnamespace) then
+    create type public.order_status as enum (
+      'AWAITING_PAYMENT', 'PAYMENT_CONFIRMED', 'PROCESSING', 'READY_TO_SHIP',
+      'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED', 'REFUND_PENDING', 'REFUNDED'
+    );
+  end if;
+  if not exists (select 1 from pg_type where typname = 'payment_method' and typnamespace = 'public'::regnamespace) then
+    create type public.payment_method as enum ('MPESA_FULL', 'CASH_ON_DELIVERY');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'payment_purpose' and typnamespace = 'public'::regnamespace) then
+    create type public.payment_purpose as enum ('ORDER_TOTAL', 'DELIVERY_FEE', 'ORDER_BALANCE', 'REFUND');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'payment_status' and typnamespace = 'public'::regnamespace) then
+    create type public.payment_status as enum (
+      'REQUIRES_ACTION', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'EXPIRED', 'REFUND_PENDING', 'REFUNDED'
+    );
+  end if;
+  if not exists (select 1 from pg_type where typname = 'inventory_movement_type' and typnamespace = 'public'::regnamespace) then
+    create type public.inventory_movement_type as enum ('PURCHASE', 'SALE', 'RESERVATION', 'RELEASE', 'RETURN', 'ADJUSTMENT');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'ledger_account_type' and typnamespace = 'public'::regnamespace) then
+    create type public.ledger_account_type as enum ('ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'entry_direction' and typnamespace = 'public'::regnamespace) then
+    create type public.entry_direction as enum ('DEBIT', 'CREDIT');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'outbox_status' and typnamespace = 'public'::regnamespace) then
+    create type public.outbox_status as enum ('PENDING', 'SENDING', 'SENT', 'FAILED', 'DEAD');
+  end if;
+end $$;
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
