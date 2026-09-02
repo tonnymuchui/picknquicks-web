@@ -44,6 +44,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.picknquicks.com' }],
+        destination: 'https://picknquicks.com/:path*',
+        permanent: true,
+      },
+      {
         source: '/shop/categories/connectivity',
         destination: '/shop/categories/accessories',
         permanent: true,
