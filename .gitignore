@@ -41,6 +41,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Supabase schema is managed manually in the hosted project
+/supabase/migrations/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
